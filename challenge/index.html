@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-base=".." data-section="challenge" data-page="section">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>數學思維挑戰 — 數學遊戲總站</title>
+<link rel="stylesheet" href="../assets/css/hub.css">
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-icon" id="hero-icon">🧠</div>
+    <div>
+      <a class="back-home" href="../index.html">← 返總站</a>
+      <h1 id="hero-title">數學思維挑戰</h1>
+      <p id="hero-desc">24點、速算 —— 畀快手嘅你</p>
+      <span class="hero-count" id="hero-count">載入中…</span>
+    </div>
+    <div class="hero-actions">
+      <button class="hero-btn ghost" id="btn-page-qr">📱 本頁 QR</button>
+      <button class="hero-btn" id="btn-print">🖨️ 列印 QR 海報</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="toolbar">
+    <div class="search">
+      <input id="search" type="search" placeholder="🔍 搜尋遊戲或課題，例如「24點」" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="chips" id="chips"></div>
+
+  <p class="result-info" id="result-info"></p>
+
+  <div class="grid" id="grid">
+    <div class="empty">載入中…</div>
+  </div>
+
+  <div class="footnote">
+    最後更新：<span id="updated-at">—</span><br>
+    用手機或平板打開都得 · 大檔案建議用 Wi-Fi · 撳「QR」可以畀同學掃
+  </div>
+</div>
+
+<div class="print-area" id="print-area"></div>
+
+<div class="modal-mask" id="qr-mask" hidden>
+  <div class="modal" id="qr-body"></div>
+</div>
+
+<script src="../assets/js/qrcode.js"></script>
+<script src="../assets/js/hub.js"></script>
+</body>
+</html>

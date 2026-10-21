@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-base="..">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>管理後台 — 數學遊戲總站</title>
+<link rel="stylesheet" href="../assets/css/hub.css">
+<style>
+  .admin-wrap { max-width: 760px; margin: 0 auto; padding: 26px 18px 60px; }
+  .panel {
+    background: #fff; border: 1px solid var(--border); border-radius: 18px;
+    padding: 20px 22px; margin-bottom: 18px; box-shadow: var(--shadow);
+  }
+  .panel h2 { margin: 0 0 4px; font-size: 18px; }
+  .panel .hint { color: var(--text-soft); font-size: 13.5px; margin: 0 0 16px; line-height: 1.65; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13.5px; font-weight: 700; margin-bottom: 5px; }
+  .field input[type=text], .field input[type=password], .field select, .field input[type=file] {
+    width: 100%; padding: 11px 13px; font-size: 15px; font-family: inherit;
+    border: 1.5px solid var(--border); border-radius: 11px; background: #fff; color: var(--text);
+  }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .row > .field { flex: 1 1 180px; }
+  .primary {
+    background: var(--accent); color: #fff; border: none; border-radius: 12px;
+    padding: 12px 22px; font-size: 15px; font-weight: 800; cursor: pointer; font-family: inherit;
+  }
+  .primary:disabled { opacity: .5; cursor: not-allowed; }
+  .secondary {
+    background: #f1f5f9; color: #334155; border: 1.5px solid var(--border); border-radius: 12px;
+    padding: 11px 18px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit;
+  }
+  .msg { margin-top: 12px; padding: 11px 14px; border-radius: 11px; font-size: 14px; line-height: 1.6; display: none; }
+  .msg.show { display: block; }
+  .msg.ok { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+  .msg.err { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+  .msg.warn { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+  .size-pill { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: 700; }
+  .size-pill.light { background:#ecfdf5; color:#047857; }
+  .size-pill.medium { background:#fff7ed; color:#b45309; }
+  .size-pill.heavy { background:#fef2f2; color:#b91c1c; }
+  .notice { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; border-radius: 12px; padding: 13px 15px; font-size: 13.5px; line-height: 1.7; }
+  table.list { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  table.list th, table.list td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); }
+  table.list th { color: var(--text-soft); font-weight: 700; }
+  .url-preview { font-size: 12.5px; color: var(--text-soft); word-break: break-all; margin-top: 6px; }
+  .lock-badge { font-size: 12px; background: #eef2ff; color: #4338ca; padding: 3px 9px; border-radius: 7px; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="hero" style="--hero-grad:linear-gradient(135deg,#334155,#0f172a)">
+  <div class="hero-inner">
+    <div class="hero-icon">🔐</div>
+    <div>
+      <a class="back-home" href="../index.html">← 返總站</a>
+      <h1>管理後台</h1>
+      <p>上傳新遊戲 · 只供波仔使用</p>
+    </div>
+  </div>
+</div>
+
+<div class="admin-wrap">
+
+  <!-- 解鎖 -->
+  <div class="panel" id="lock-panel">
+    <h2>先解鎖</h2>
+    <p class="hint">
+      呢個密碼只係防止學生亂撳（純靜態網站冇真正後端密碼）。真正嘅保險係下面嗰把 GitHub token，
+      佢只會存在你今次嘅瀏覽器分頁入面。
+    </p>
+    <div class="field">
+      <label for="pw">密碼</label>
+      <input type="password" id="pw" placeholder="輸入密碼" autocomplete="current-password">
+    </div>
+    <button class="primary" id="btn-unlock">解鎖</button>
+    <div class="msg err" id="pw-msg"></div>
+  </div>
+
+  <!-- 上傳 -->
+  <div id="admin-body" hidden>
+
+    <div class="panel">
+      <h2>1. GitHub 連線</h2>
+      <p class="hint">
+        只需要填一次（會記喺呢部電腦）。Token 只存喺 sessionStorage —— 關咗分頁就消失。
+      </p>
+      <div class="row">
+        <div class="field">
+          <label for="owner">GitHub 用戶名</label>
+          <input type="text" id="owner" placeholder="例如 chonunsou">
+        </div>
+        <div class="field">
+          <label for="repo">Repo 名稱</label>
+          <input type="text" id="repo" value="math-game-hub">
+        </div>
+        <div class="field">
+          <label for="branch">分支</label>
+          <input type="text" id="branch" value="main">
+        </div>
+      </div>
+      <div class="field">
+        <label for="token">Fine-grained Personal Access Token <span class="lock-badge">只存 sessionStorage</span></label>
+        <input type="password" id="token" placeholder="github_pat_…" autocomplete="off">
+      </div>
+      <button class="primary" id="btn-save-cfg">儲存連線設定</button>
+      <button class="secondary" id="btn-clear-token" style="margin-left:8px">清除 token</button>
+      <div class="msg" id="cfg-msg"></div>
+    </div>
+
+    <div class="panel">
+      <h2>2. 上傳新遊戲</h2>
+      <p class="hint">
+        只支援單一 HTML 檔（自帶圖片嘅）。如果個遊戲有外部圖檔或 js，請用「方法 A」叫我幫你上架。
+      </p>
+      <div class="field">
+        <label for="f-title">遊戲名稱（顯示喺卡片）</label>
+        <input type="text" id="f-title" placeholder="例如 分數大冒險">
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="f-section">放喺邊一區</label>
+          <select id="f-section"></select>
+        </div>
+        <div class="field">
+          <label for="f-topic">課題</label>
+          <input type="text" id="f-topic" list="topic-list" placeholder="例如 分數加減">
+          <datalist id="topic-list"></datalist>
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-slug">網址代號 slug（英文、細楷、用 - 連接）</label>
+        <input type="text" id="f-slug" placeholder="例如 fraction-adventure（留空會自動產生）">
+        <div class="url-preview" id="url-preview">最終網址：—</div>
+      </div>
+      <div class="field">
+        <label for="f-file">遊戲 HTML 檔</label>
+        <input type="file" id="f-file" accept=".html,text/html">
+        <div class="url-preview" id="size-info"></div>
+      </div>
+      <button class="primary" id="btn-upload" disabled>上傳並發佈</button>
+      <div class="msg" id="up-msg"></div>
+    </div>
+
+    <div class="panel">
+      <h2>3. 已上架遊戲</h2>
+      <p class="hint">呢個清單係由 data/games.json 讀出嚟嘅。</p>
+      <table class="list" id="game-table">
+        <thead><tr><th>名稱</th><th>分區</th><th>課題</th><th>大小</th></tr></thead>
+        <tbody><tr><td colspan="4">載入中…</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h2>安全性說明（請睇一次）</h2>
+      <div class="notice">
+        • 密碼閘只係防學生誤觸，唔係真正嘅安全機制。<br>
+        • 真正嘅鑰匙係 token。冇 token 嘅人撳上傳只會得到 401，改唔到任何嘢。<br>
+        • <strong>唔好喺學校公用電腦勾「記住我」或者長期開住呢頁。</strong><br>
+        • Token 建議設 90 日有效期，只需要 <code>Contents: Read and write</code> 權限，只勾呢一個 repo。<br>
+        • 想改密碼：打開 <code>assets/js/admin.js</code> 搜 <code>PASSWORD</code>，改個字串再上傳。
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="../assets/js/admin.js"></script>
+</body>
+</html>

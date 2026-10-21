@@ -1,0 +1,18 @@
+{
+  "_comment": "slug 凍結表：key 係來源檔案相對於 root 的路徑，value 係永久 slug。一經決定就唔好改，因為學生可能已經收藏咗網址。新遊戲唔喺呢張表入面時，build.py 會自動生成 slug 並提示你確認後寫返入嚟。",
+
+  "三數學/遊戲/99乘法表/乘法對戰賽跑.html": "multiplication-race",
+  "三數學/遊戲/05直式乘法/直式乘法對戰.html": "vertical-multiplication-battle",
+  "三數學/遊戲/06四則運算次序/index.html": "order-of-operations",
+  "三數學/遊戲/07毫米與分米-兩端拖曳量度.html": "mm-dm-measure",
+  "三數學/遊戲/07單位換算.html": "unit-conversion",
+  "三數學/遊戲/今日大富豪_澳門幣.html": "monopoly-mop",
+
+  "六數學/遊戲/折扣、賺賠/超市大亨爭霸戰_v2.11-扣血機制.html": "supermarket-tycoon",
+  "六數學/遊戲/百分數精靈對戰・華麗技能版.html": "percent-spirit-battle",
+  "六數學/遊戲/單利息_打倒利息怪獸.html": "simple-interest-monster",
+  "六數學/遊戲/小數分數百分數互化/p6-percent-battle.html": "decimal-fraction-percent",
+
+  "六數學思維/發明學院_24點爭霸戰.html": "game24-invention",
+  "六數學思維/六年級小數分數速算.html": "decimal-fraction-mental"
+}

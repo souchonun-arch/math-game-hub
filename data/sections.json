@@ -1,0 +1,29 @@
+[
+  {
+    "id": "p3",
+    "title": "三年級數學",
+    "desc": "乘法、單位換算、澳門幣",
+    "icon": "🌱",
+    "color": "#16a34a",
+    "colorSoft": "#dcfce7",
+    "gradient": "linear-gradient(135deg,#16a34a,#22c55e)"
+  },
+  {
+    "id": "p6",
+    "title": "六年級數學",
+    "desc": "百分數、折扣與賺賠、單利息",
+    "icon": "🚀",
+    "color": "#2563eb",
+    "colorSoft": "#dbeafe",
+    "gradient": "linear-gradient(135deg,#2563eb,#3b82f6)"
+  },
+  {
+    "id": "challenge",
+    "title": "數學思維挑戰",
+    "desc": "24點、速算 —— 畀快手嘅你",
+    "icon": "🧠",
+    "color": "#ea580c",
+    "colorSoft": "#ffedd5",
+    "gradient": "linear-gradient(135deg,#ea580c,#fb923c)"
+  }
+]

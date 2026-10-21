@@ -1,0 +1,406 @@
+/* ===========================================================
+   數學遊戲總站 — 共用樣式
+   淺色主題、圓角卡片、手機優先、支援列印 QR 海報
+   =========================================================== */
+
+:root {
+  --bg: #f6f8fb;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --text-soft: #6b7280;
+  --border: #e5e7eb;
+  --shadow: 0 2px 10px rgba(15, 23, 42, .06);
+  --shadow-hover: 0 10px 26px rgba(15, 23, 42, .13);
+  --radius: 18px;
+  --accent: #2563eb;
+  --accent-soft: #dbeafe;
+  --warn: #d97706;
+  --danger: #dc2626;
+  --ok: #16a34a;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC",
+               "Microsoft JhengHei", "Helvetica Neue", sans-serif;
+  -webkit-text-size-adjust: 100%;
+  line-height: 1.6;
+}
+
+a { color: inherit; text-decoration: none; }
+
+.wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 18px 60px;
+}
+
+/* ---------- 頁首 ---------- */
+.hero {
+  background: var(--hero-grad, linear-gradient(135deg, #2563eb, #3b82f6));
+  color: #fff;
+  padding: 36px 18px 30px;
+  margin-bottom: 22px;
+  box-shadow: var(--shadow);
+}
+.hero-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.hero-icon {
+  font-size: 52px;
+  line-height: 1;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,.18));
+}
+.hero h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: .5px;
+}
+.hero p {
+  margin: 4px 0 0;
+  opacity: .92;
+  font-size: 15px;
+}
+.hero .hero-count {
+  display: inline-block;
+  margin-top: 8px;
+  background: rgba(255,255,255,.22);
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.hero-actions { margin-left: auto; display: flex; gap: 10px; flex-wrap: wrap; }
+
+.hero-btn {
+  background: rgba(255,255,255,.95);
+  color: var(--text);
+  border: none;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,.14);
+}
+.hero-btn:hover { transform: translateY(-1px); }
+.hero-btn.ghost {
+  background: rgba(255,255,255,.18);
+  color: #fff;
+  border: 1.5px solid rgba(255,255,255,.6);
+  box-shadow: none;
+}
+
+.back-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #fff;
+  opacity: .95;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+/* ---------- 工具列（搜尋 + 分類） ---------- */
+.toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 0 0 14px;
+}
+.search {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+.search input {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+}
+.search input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.14);
+}
+
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip {
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-soft);
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chip:hover { border-color: var(--accent); color: var(--accent); }
+.chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.result-info {
+  color: var(--text-soft);
+  font-size: 14px;
+  margin: 0 0 16px;
+}
+
+/* ---------- 遊戲卡片 ---------- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+  gap: 18px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+.card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+
+.card-visual {
+  height: 92px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  background: var(--card-grad, linear-gradient(135deg,#60a5fa,#3b82f6));
+  letter-spacing: 2px;
+}
+
+.card-body { padding: 14px 16px 16px; flex: 1; display: flex; flex-direction: column; }
+
+.card-title {
+  font-size: 17px;
+  font-weight: 800;
+  margin: 0 0 8px;
+  line-height: 1.4;
+}
+
+.card-topic {
+  align-self: flex-start;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 3px 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: auto;
+  font-size: 13px;
+  color: var(--text-soft);
+}
+.badge {
+  padding: 2px 8px;
+  border-radius: 7px;
+  font-weight: 700;
+  font-size: 12.5px;
+}
+.badge.light  { background:#f1f5f9; color:#475569; }
+.badge.medium { background:#fff7ed; color:var(--warn); }
+.badge.heavy  { background:#fef2f2; color:var(--danger); }
+.badge.net    { background:#eef2ff; color:#4338ca; }
+
+.card-actions { display: flex; gap: 8px; margin-top: 12px; }
+.btn {
+  flex: 1;
+  text-align: center;
+  padding: 10px 12px;
+  border-radius: 11px;
+  font-weight: 800;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+.btn-play {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-qr {
+  flex: 0 0 auto;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1.5px solid var(--border);
+}
+.btn:hover { filter: brightness(1.05); }
+
+/* ---------- 首頁三個入口 ---------- */
+.section-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 22px;
+  margin-top: 8px;
+}
+.section-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.section-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+.section-top {
+  height: 118px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 58px;
+}
+.section-info { padding: 18px 20px 22px; }
+.section-info h2 { margin: 0 0 6px; font-size: 22px; font-weight: 800; }
+.section-info p { margin: 0 0 14px; color: var(--text-soft); font-size: 15px; }
+.section-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.section-count { font-weight: 800; color: var(--accent); font-size: 15px; }
+.section-go {
+  background: var(--accent);
+  color: #fff;
+  padding: 9px 18px;
+  border-radius: 11px;
+  font-weight: 800;
+}
+
+/* ---------- QR 彈窗 ---------- */
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 50;
+}
+.modal-mask[hidden] { display: none; }
+.modal {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 22px;
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,.28);
+}
+.modal h3 { margin: 0 0 4px; font-size: 19px; }
+.modal .modal-sub { color: var(--text-soft); font-size: 13.5px; margin: 0 0 14px; }
+.modal .qr-box { background: #fff; padding: 10px; border-radius: 14px; display: inline-block; }
+.modal .qr-box svg { display: block; width: 100%; height: auto; }
+.modal .qr-url {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--text-soft);
+  word-break: break-all;
+  line-height: 1.5;
+}
+.modal .modal-close {
+  margin-top: 16px;
+  width: 100%;
+  padding: 11px;
+  border: none;
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: var(--text);
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* ---------- 頁腳 ---------- */
+.footnote {
+  margin-top: 40px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  color: var(--text-soft);
+  font-size: 13px;
+  text-align: center;
+  line-height: 1.8;
+}
+
+.empty {
+  text-align: center;
+  padding: 46px 20px;
+  color: var(--text-soft);
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+/* ---------- 手機 ---------- */
+@media (max-width: 560px) {
+  .hero { padding: 26px 16px 22px; }
+  .hero h1 { font-size: 23px; }
+  .hero-icon { font-size: 42px; }
+  .hero-actions { margin-left: 0; width: 100%; }
+  .hero-btn { flex: 1; }
+  .grid { grid-template-columns: 1fr; gap: 14px; }
+  .card-visual { height: 78px; font-size: 34px; }
+  .wrap { padding: 0 14px 44px; }
+}
+
+/* ---------- 列印 QR 海報（平時唔顯示） ---------- */
+.print-area { display: none; }
+
+@media print {
+  body { background: #fff; }
+  .hero, .toolbar, .grid, .result-info, .footnote, .hero-actions { display: none !important; }
+  .print-area { display: block; }
+  .print-area h2 { font-size: 20px; margin: 0 0 4px; }
+  .print-area .print-sub { color: #555; font-size: 12px; margin: 0 0 18px; }
+  .print-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .print-item {
+    border: 1.5px solid #111;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    break-inside: avoid;
+  }
+  .print-item .pi-title { font-size: 12px; font-weight: 800; margin-bottom: 7px; }
+  .print-item svg { width: 100%; height: auto; display: block; }
+  .print-item .pi-sub { font-size: 10px; color: #444; margin-top: 5px; }
+  @page { margin: 14mm; }
+}

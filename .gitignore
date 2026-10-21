@@ -1,0 +1,14 @@
+# 由 build.py 自動產生，唔好手改
+data/games.json
+
+.DS_Store
+Thumbs.db
+
+# 本機 Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# 建議檔（新遊戲缺 overrides 資料時產生，只係參考用）
+data/overrides.suggested.json

@@ -1,0 +1,18 @@
+{
+  "_comment": "build.py 的掃描設定。日後要加第四個分區：只需喺 sources 加一筆 dir+section，再喺 data/sections.json 加一筆，唔使改 build.py",
+  "root": "/Users/chonunsou/Desktop/ＣＤＳＪ5/26-27學年",
+  "sources": [
+    { "dir": "三數學/遊戲", "section": "p3", "recursive": true },
+    { "dir": "六數學/遊戲", "section": "p6", "recursive": true },
+    { "dir": "六數學思維", "section": "challenge", "recursive": true }
+  ],
+  "minBytes": 20480,
+  "excludeSubstrings": ["原始備份"],
+  "excludeRelPaths": [
+    "三數學/遊戲/06四則運算次序/06四則運算次序.html"
+  ],
+  "_excludeRelPathsReason": "此檔與 06四則運算次序/index.html md5 完全相同（2ec1f8ec9b6c36deb41517e310aa4d63），只上架一份",
+  "attachExtensions": [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".js", ".css", ".mp3", ".ogg", ".json"],
+  "attachNeverCopy": ["bank-p1.js", "AI_PROMPTS.md"],
+  "_attachNeverCopyReason": "實測證實無被任何遊戲引用"
+}
