@@ -387,9 +387,10 @@
       });
   }
 
-  function saveGate() {
+  function saveGate(attempt) {
     clearTimeout(gateTimer);
-    if (gateSaving) { gateAgain = true; return; }   // 唔可以丟：記住要再跑一次
+    if (gateSaving) { gateAgain = true; return Promise.resolve(); }
+    attempt = attempt || 0;
     var msg = '#gate-msg';
     hide(msg);
     var tk = token();
@@ -399,7 +400,7 @@
 
     if (!tk || !owner) {
       setSaveState('dirty', '● 未儲存（要先填 GitHub token）');
-      show(msg, 'err', '要改開放設定，請先喺下面「2. GitHub 連線」填用戶名同 token。');
+      show(msg, 'err', '要改開放設定，請先喺下面「2. GitHub 連線」填用戶名同 token，再撳「測試連線」。');
       return Promise.resolve();
     }
 
@@ -424,10 +425,20 @@
         if (sha) bodyObj.sha = sha;
         return api(apiPath, { method: 'PUT', token: tk, body: bodyObj });
       })
-      .then(function () {
+      .catch(function (e) {
+        /* 409 = 兩次儲存撞車：重新攞最新 sha 再試，最多 3 次 */
+        if (e.status === 409 && attempt < 3) {
+          setSaveState('saving', '儲存中…（重試 ' + (attempt + 1) + '）');
+          return new Promise(function (r) { setTimeout(r, 900); })
+            .then(function () { return saveGate(attempt + 1); });
+        }
+        throw e;
+      })
+      .then(function (res) {
+        if (res && res.__skipped) return;       // 中間重試已處理
         gateDirty = false;
         gateSaving = false;
-        if (gateAgain) {            // 期間仲有改動 → 即刻再存一次
+        if (gateAgain) {                        // 期間仲有改動 → 即刻再存一次
           gateAgain = false;
           setSaveState('saving', '儲存中…（第二次）');
           return saveGate();
