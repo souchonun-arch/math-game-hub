@@ -18,6 +18,7 @@
     topics: {},
     sections: [],
     secMap: {},
+    open: { all: true },
     q: '',
     topic: 'all'
   };
@@ -67,6 +68,28 @@
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;')
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* 三層開放判定：個別遊戲 > 分區 > 全站（缺省 = 開放）
+     讀唔到 open.json 一律當開放，唔會因為設定檔出事而上唔到堂 */
+  function gameOpen(g) {
+    var o = state.open || {};
+    var v = o.games && o.games[g.id];
+    if (v === true || v === false) return v;
+    v = o.sections && o.sections[g.section];
+    if (v === true || v === false) return v;
+    return o.all !== false;
+  }
+
+  function sectionOpen(secId) {
+    var o = state.open || {};
+    var v = o.sections && o.sections[secId];
+    if (v === true || v === false) return v;
+    return o.all !== false;
+  }
+
+  function lockNote() {
+    return (state.open && state.open.message) || '呢個遊戲暫時未開放';
   }
 
   function wifiBadge(g) {
@@ -185,27 +208,45 @@
     var emoji = TOPIC_EMOJI[g.topic] || '🎮';
     var grad = GRADIENTS[idx % GRADIENTS.length];
     var net = g.needsNetwork ? '<span class="badge net">需外網</span>' : '';
+    var locked = !gameOpen(g);
     var flame = g.isNew
       ? '<span class="new-flame" title="最近更新"><span class="flame-ico">🔥</span>NEW</span>'
       : '';
+    var cls = 'card' + (g.isNew ? ' is-new' : '') + (locked ? ' is-locked' : '');
+    var actions = locked
+      ? '<span class="btn btn-play btn-disabled" title="' + esc(lockNote()) + '">🔒 未開放</span>' +
+        '<button class="btn btn-qr btn-disabled" disabled title="未開放，冇得印 QR">QR</button>'
+      : '<a class="btn btn-play" href="' + esc(absUrl(g.entry)) + '" target="_blank" rel="noopener">開始遊戲 ▶</a>' +
+        '<button class="btn btn-qr" data-qr="' + esc(g.id) + '" title="顯示 QR Code">QR</button>';
     return '' +
-      '<article class="card' + (g.isNew ? ' is-new' : '') + '" data-id="' + esc(g.id) + '">' +
+      '<article class="' + cls + '" data-id="' + esc(g.id) + '">' +
         '<div class="card-visual" style="--card-grad:' + grad + '">' +
           '<span class="card-emoji">' + emoji + '</span>' +
           '<img class="card-cover" src="' + esc(absUrl('assets/img/' + g.id + '.jpg')) +
             '" alt="" loading="lazy" decoding="async" onerror="this.remove()">' +
           flame +
+          (locked ? '<span class="card-lock"><span class="lock-ico">🔒</span>未開放</span>' : '') +
         '</div>' +
         '<div class="card-body">' +
           '<h3 class="card-title">' + esc(g.title) + '</h3>' +
           '<span class="card-topic">' + esc(g.topic) + '</span>' +
           '<div class="card-meta">' + wifiBadge(g) + net + '</div>' +
-          '<div class="card-actions">' +
-            '<a class="btn btn-play" href="' + esc(absUrl(g.entry)) + '" target="_blank" rel="noopener">開始遊戲 ▶</a>' +
-            '<button class="btn btn-qr" data-qr="' + esc(g.id) + '" title="顯示 QR Code">QR</button>' +
-          '</div>' +
+          '<div class="card-actions">' + actions + '</div>' +
         '</div>' +
       '</article>';
+  }
+
+  /* 鎖定提示橫額：插喺 grid 前面，全校/全區閂嗰陣先出現 */
+  function updateLockBanner(grid, html) {
+    if (!grid || !grid.parentNode) return;
+    var b = grid.parentNode.querySelector('.lock-banner');
+    if (!html) { if (b) b.parentNode.removeChild(b); return; }
+    if (!b) {
+      b = document.createElement('div');
+      b.className = 'lock-banner';
+      grid.parentNode.insertBefore(b, grid);
+    }
+    b.innerHTML = html;
   }
 
   function renderCards() {
@@ -216,11 +257,19 @@
     if (!list.length) {
       grid.innerHTML = '<div class="empty">搵唔到相關遊戲 🤷<br>試下第二個關鍵字？</div>';
       if (info) info.textContent = '';
+      updateLockBanner(grid, '');
       return;
     }
     grid.innerHTML = list.map(cardHtml).join('');
+    var openCount = list.filter(gameOpen).length;
+    updateLockBanner(grid, (!openCount && list.length)
+      ? '<span class="lock-ico">🔒</span><div><b>' + esc(lockNote()) + '</b>' +
+        '<span>上堂嗰陣老師一撳掣就開，到時再嚟玩啦！</span></div>'
+      : '');
     if (info) {
-      info.textContent = '顯示 ' + list.length + ' / ' + state.games.length + ' 款遊戲';
+      info.textContent = (openCount === list.length)
+        ? '顯示 ' + list.length + ' / ' + state.games.length + ' 款遊戲'
+        : '顯示 ' + list.length + ' 款（' + openCount + ' 款開放中）';
     }
     Array.prototype.forEach.call(grid.querySelectorAll('[data-qr]'), function (btn) {
       btn.onclick = function () {
@@ -240,11 +289,21 @@
       var total = items.reduce(function (a, g) { return a + g.totalBytes; }, 0);
       var mb = (total / (1024 * 1024)).toFixed(1);
       var newCount = items.filter(function (g) { return g.isNew; }).length;
-      var badge = newCount
-        ? '<span class="section-new"><span class="flame-ico">🔥</span>' + newCount + ' 款新</span>'
-        : '';
+      var openCount = items.filter(gameOpen).length;
+      var locked = !sectionOpen(sec.id);
+      var badge = '';
+      if (locked) {
+        badge = '<span class="sec-lock"><span class="lock-ico">🔒</span>未開放</span>';
+      } else if (newCount) {
+        badge = '<span class="section-new"><span class="flame-ico">🔥</span>' + newCount + ' 款新</span>';
+      }
+      var tag = locked ? 'span' : 'a';
+      var href = locked ? '' : ' href="' + esc(absUrl(sec.id + '/')) + '"';
+      var foot = locked
+        ? '<span class="section-go btn-disabled" style="background:#64748b">🔒 未開放</span>'
+        : '<span class="section-go" style="background:' + sec.color + '">入去玩 ▶</span>';
       return '' +
-        '<a class="section-card" href="' + esc(absUrl(sec.id + '/')) + '">' +
+        '<' + tag + ' class="section-card' + (locked ? ' is-locked' : '') + '"' + href + '>' +
           '<div class="section-top" style="background:' + sec.gradient + '">' +
             '<span class="section-emoji">' + sec.icon + '</span>' +
             '<img class="section-cover" src="' + esc(absUrl('assets/img/sec-' + sec.id + '.jpg')) +
@@ -256,11 +315,13 @@
             '<p>' + esc(sec.desc) + '</p>' +
             '<div class="section-foot">' +
               '<span class="section-count">' + items.length + ' 款 · ' + mb + ' MB' +
-                (newCount ? ' · <b style="color:#e11d48">' + newCount + ' 新</b>' : '') + '</span>' +
-              '<span class="section-go" style="background:' + sec.color + '">入去玩 ▶</span>' +
+                (locked ? ' · <b style="color:#64748b">未開放</b>'
+                        : (openCount < items.length ? ' · <b style="color:#64748b">' + openCount + ' 款開</b>' : '')) +
+                (newCount && !locked ? ' · <b style="color:#e11d48">' + newCount + ' 新</b>' : '') + '</span>' +
+              foot +
             '</div>' +
           '</div>' +
-        '</a>';
+        '</' + tag + '>';
     }).join('');
   }
 
@@ -312,10 +373,13 @@
   Promise.all([
     loadJSON('data/games.json'),
     loadJSON('data/sections.json'),
-    loadJSON('data/topics.json')
+    loadJSON('data/topics.json'),
+    /* 讀唔到 open.json 一律當全開：寧願漏鎖，都唔可以搞到上唔到堂 */
+    loadJSON('data/open.json').catch(function () { return { all: true }; })
   ]).then(function (res) {
     var games = res[0] || {};
     state.meta = { updated: games.updated || '' };
+    state.open = res[3] || { all: true };
     state.games = (games.games || []).filter(function (g) {
       return PAGE === 'home' ? true : g.section === SECTION;
     });

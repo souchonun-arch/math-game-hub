@@ -39,6 +39,7 @@ TOPICS_FILE = DATA_DIR / "topics.json"
 SECTIONS_FILE = DATA_DIR / "sections.json"
 GAMES_JSON = DATA_DIR / "games.json"
 SUGGESTED_FILE = DATA_DIR / "overrides.suggested.json"
+GATE_TEMPLATE = SCRIPTS_DIR / "gate_template.html"
 
 TZ = timezone(timedelta(hours=8))
 
@@ -52,6 +53,18 @@ VERSION_WORDS = re.compile(r"(v?\d+\.\d+|v\d+|華麗技能版|原始備份|\(.*?
 def die(msg: str) -> "NoReturn":  # type: ignore[valid-type]
     print(f"\n❌ 中止：{msg}\n", file=sys.stderr)
     sys.exit(1)
+
+
+def render_gate(section: str, slug: str, title: str) -> str:
+    """產生 1KB 守門頁：未開放會擋住，開放咗先放行去 play.html。"""
+    if not GATE_TEMPLATE.exists():
+        die(f"唔見守門頁模板：{GATE_TEMPLATE}")
+    tpl = GATE_TEMPLATE.read_text(encoding="utf-8")
+    # 用 JSON 字面量塞入，避免標題有引號／換行會爆
+    return (tpl
+            .replace("__SECTION__", json.dumps(section, ensure_ascii=False))
+            .replace("__SLUG__", json.dumps(slug, ensure_ascii=False))
+            .replace("__TITLE__", json.dumps(title, ensure_ascii=False)))
 
 
 def load_json(path: Path, default=None):
@@ -279,7 +292,7 @@ def _build_entry(hp: Path, rel: str, raw: bytes, digest: str, section: str,
         "source": rel,
         "sourceAbs": str(hp),
         "entry": f"games/{section}/{slug}/",
-        "file": "index.html",
+        "file": "play.html",
         "deps": [d["file"] for d in deps],
         "unresolvedRefs": unresolved,
         # 「未登記 slug」旗標（內部用，唔會寫入 games.json）
@@ -426,7 +439,11 @@ def main() -> int:
             text = src.read_bytes()
         except Exception as e:
             die(f"讀取失敗 {src}：{e}")
-        (dest_dir / "index.html").write_bytes(text)
+        # 遊戲本體改名 play.html，index.html 讓位畀「守門頁」
+        (dest_dir / "play.html").write_bytes(text)
+        written += 1
+        (dest_dir / "index.html").write_text(
+            render_gate(g["section"], g["id"], g["title"]), encoding="utf-8")
         written += 1
         for dep in g["deps"]:
             dep_src = src.parent / dep

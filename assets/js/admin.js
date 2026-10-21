@@ -24,6 +24,7 @@
     file: null,
     fileBytes: null,
     fileText: '',
+    open: { all: true, sections: {}, games: {}, message: '' },
     cfg: { owner: '', repo: 'math-game-hub', branch: 'main' }
   };
 
@@ -253,6 +254,163 @@
     }
   }
 
+  /* ================= 開放控制 🔒 ================= */
+
+  var gateDirty = false;
+  var gateTimer = null;
+
+  function gameOpen(g) {
+    var o = state.open || {};
+    var v = o.games && o.games[g.id];
+    if (v === true || v === false) return v;
+    v = o.sections && o.sections[g.section];
+    if (v === true || v === false) return v;
+    return o.all !== false;
+  }
+
+  function sectionOpen(id) {
+    var o = state.open || {};
+    var v = o.sections && o.sections[id];
+    if (v === true || v === false) return v;
+    return o.all !== false;
+  }
+
+  function tglHtml(kind, key, label, sub, on) {
+    return '' +
+      '<div class="tgl-row">' +
+        '<div class="tgl-label"><b>' + esc(label) + '</b>' +
+          (sub ? '<span>' + esc(sub) + '</span>' : '') +
+        '</div>' +
+        '<button type="button" class="tgl' + (on ? ' on' : '') + '"' +
+          ' data-kind="' + kind + '"' + (key ? ' data-key="' + esc(key) + '"' : '') + '>' +
+          '<span class="tgl-track"><span class="tgl-knob"></span></span>' +
+          '<span class="tgl-text">' + (on ? '開放' : '未開放') + '</span>' +
+        '</button>' +
+      '</div>';
+  }
+
+  function paintTgl(btn, on) {
+    btn.classList.toggle('on', on);
+    btn.querySelector('.tgl-text').textContent = on ? '開放' : '未開放';
+  }
+
+  function renderGate() {
+    var o = state.open || {};
+    var allOn = o.all !== false;
+    paintTgl($('#tgl-all'), allOn);
+    $('#f-gate-msg').value = o.message || '';
+
+    $('#tgl-sections').innerHTML = state.sections.map(function (s) {
+      return tglHtml('section', s.id, s.title, s.desc, sectionOpen(s.id));
+    }).join('');
+
+    var groups = {};
+    (state.games.games || []).forEach(function (g) {
+      (groups[g.section] = groups[g.section] || []).push(g);
+    });
+    var html = '';
+    state.sections.forEach(function (s) {
+      var list = groups[s.id] || [];
+      if (!list.length) return;
+      html += '<div class="tgl-group-title" style="margin-top:10px">' + esc(s.title) + '</div>';
+      html += list.map(function (g) {
+        return tglHtml('game', g.id, g.title, g.topic, gameOpen(g));
+      }).join('');
+    });
+    $('#tgl-games').innerHTML = html;
+
+    Array.prototype.forEach.call(
+      document.querySelectorAll('.tgl[data-kind="section"], .tgl[data-kind="game"]'),
+      function (btn) {
+        btn.onclick = function () { toggleGate(btn); };
+      });
+  }
+
+  function toggleGate(btn) {
+    var kind = btn.getAttribute('data-kind');
+    var key = btn.getAttribute('data-key');
+    var o = state.open;
+    o.sections = o.sections || {};
+    o.games = o.games || {};
+
+    if (kind === 'all') {
+      o.all = !(o.all !== false);
+      paintTgl($('#tgl-all'), o.all);
+      renderGate();
+    } else if (kind === 'section') {
+      o.sections[key] = !sectionOpen(key);
+      paintTgl(btn, sectionOpen(key));
+    } else {
+      var g = (state.games.games || []).filter(function (x) { return x.id === key; })[0];
+      if (!g) return;
+      o.games[key] = !gameOpen(g);
+      paintTgl(btn, gameOpen(g));
+    }
+    markDirty();
+  }
+
+  function setSaveState(cls, text) {
+    var el = $('#gate-state');
+    el.className = 'save-state' + (cls ? ' ' + cls : '');
+    el.textContent = text;
+  }
+
+  function markDirty() {
+    gateDirty = true;
+    setSaveState('dirty', '● 有改動未儲存');
+    $('#btn-gate-save').disabled = false;
+    clearTimeout(gateTimer);
+    gateTimer = setTimeout(saveGate, 1800);   // 撳完 1.8 秒自動儲存
+  }
+
+  function saveGate() {
+    clearTimeout(gateTimer);
+    var msg = '#gate-msg';
+    hide(msg);
+    var tk = token();
+    var owner = state.cfg.owner || '';
+    var repo = state.cfg.repo || 'math-game-hub';
+    var branch = state.cfg.branch || 'main';
+
+    if (!tk || !owner) {
+      setSaveState('dirty', '● 未儲存（要先填 GitHub token）');
+      show(msg, 'err', '要改開放設定，請先喺下面「2. GitHub 連線」填用戶名同 token。');
+      return Promise.resolve();
+    }
+
+    var d = new Date(Date.now() + 8 * 3600 * 1000);
+    state.open.updatedAt = d.toISOString().slice(0, 16).replace('T', ' ');
+    var payload = JSON.stringify(state.open, null, 2) + '\n';
+    var apiPath = '/repos/' + owner + '/' + repo + '/contents/data/open.json';
+    setSaveState('saving', '儲存中…');
+    $('#btn-gate-save').disabled = true;
+
+    /* 用 Contents API：只改一個細檔，唔使行 Git Data API */
+    return api(apiPath + '?ref=' + encodeURIComponent(branch), { token: tk })
+      .then(function (info) { return info.sha || null; })
+      .catch(function () { return null; })      // 檔案未存在 → 當新增
+      .then(function (sha) {
+        var bodyObj = {
+          message: '更新開放設定',
+          content: bytesToB64(textToBytes(payload)),
+          branch: branch
+        };
+        if (sha) bodyObj.sha = sha;
+        return api(apiPath, { method: 'PUT', token: tk, body: bodyObj });
+      })
+      .then(function () {
+        gateDirty = false;
+        setSaveState('ok', '✅ 已儲存 · 1–2 分鐘後生效');
+        $('#btn-gate-save').disabled = true;
+      })
+      .catch(function (e) {
+        setSaveState('dirty', '● 儲存失敗');
+        $('#btn-gate-save').disabled = false;
+        show(msg, 'err', '❌ 儲存失敗：' + esc(e.message) +
+          '<br>最常見原因係 token 冇勾 <code>Contents: Read and write</code> 權限，或者過咗期。');
+      });
+  }
+
   /* ---------- 上傳（原子 commit） ---------- */
   function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
@@ -289,7 +447,8 @@
     function progress(t) { step = t; show(msg, 'warn', '⏳ ' + t + '…'); }
 
     var base = '/repos/' + owner + '/' + repo;
-    var headSha, treeSha, htmlBlobSha, jsonBlobSha, gamePath, newGamesJson;
+    var headSha, treeSha, htmlBlobSha, jsonBlobSha, gateBlobSha;
+    var gamePath, gatePath, newGamesJson;
 
     progress('讀取遠端最新狀態');
     api(base + '/git/ref/heads/' + encodeURIComponent(branch), { token: tk })
@@ -329,7 +488,7 @@
             sha256: hash,
             source: '(後台上傳) ' + state.file.name,
             entry: 'games/' + section + '/' + slug + '/',
-            file: 'index.html',
+            file: 'play.html',
             deps: [],
             unresolvedRefs: []
           });
@@ -342,6 +501,7 @@
           data.updated = d.toISOString().slice(0, 16).replace('T', ' ');
           newGamesJson = JSON.stringify(data, null, 2) + '\n';
 
+          gamePath = 'games/' + section + '/' + slug + '/play.html';
           progress('上傳遊戲檔（' + humanSize(total) + '）');
           return api(base + '/git/blobs', {
             method: 'POST', token: tk,
@@ -351,6 +511,33 @@
       })
       .then(function (blob) {
         htmlBlobSha = blob.sha;
+        progress('產生守門頁');
+        /* 守門頁：index.html 會先查 open.json，未開放就唔放行去 play.html */
+        return fetch(new URL('../scripts/gate_template.html', location.href).href)
+          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+          .catch(function () { return null; });
+      })
+      .then(function (tpl) {
+        var gateHtml;
+        if (tpl) {
+          gateHtml = tpl
+            .replace('__SECTION__', JSON.stringify(section))
+            .replace('__SLUG__', JSON.stringify(slug))
+            .replace('__TITLE__', JSON.stringify(title));
+        } else {
+          /* 模板唔見咗都要起碼識直接跳去 play.html，唔可以變死連結 */
+          gateHtml = '<!doctype html><meta charset="utf-8">' +
+            '<meta http-equiv="refresh" content="0;url=play.html">' +
+            '<script>location.replace("play.html")</script>';
+        }
+        gatePath = 'games/' + section + '/' + slug + '/index.html';
+        return api(base + '/git/blobs', {
+          method: 'POST', token: tk,
+          body: { content: bytesToB64(textToBytes(gateHtml)), encoding: 'base64' }
+        });
+      })
+      .then(function (blob) {
+        gateBlobSha = blob.sha;
         progress('更新遊戲清單');
         return api(base + '/git/blobs', {
           method: 'POST', token: tk,
@@ -359,7 +546,6 @@
       })
       .then(function (blob) {
         jsonBlobSha = blob.sha;
-        gamePath = 'games/' + section + '/' + slug + '/index.html';
         progress('建立新版本');
         return api(base + '/git/trees', {
           method: 'POST', token: tk,
@@ -367,6 +553,7 @@
             base_tree: treeSha,
             tree: [
               { path: gamePath, mode: '100644', type: 'blob', sha: htmlBlobSha },
+              { path: gatePath, mode: '100644', type: 'blob', sha: gateBlobSha },
               { path: 'data/games.json', mode: '100644', type: 'blob', sha: jsonBlobSha }
             ]
           }
@@ -428,18 +615,32 @@
     Promise.all([
       loadJSON('data/games.json'),
       loadJSON('data/sections.json'),
-      loadJSON('data/topics.json')
+      loadJSON('data/topics.json'),
+      /* 讀唔到 open.json 一律當全開：寧願漏鎖，都唔好搞到上唔到堂 */
+      loadJSON('data/open.json').catch(function () {
+        return { all: true, sections: {}, games: {}, message: '' };
+      })
     ]).then(function (res) {
       state.games = res[0] || {};
       state.sections = res[1] || [];
       state.topics = res[2] || {};
+      state.open = res[3] || { all: true, sections: {}, games: {}, message: '' };
+      state.open.sections = state.open.sections || {};
+      state.open.games = state.open.games || {};
       fillSections();
       renderTable();
+      renderGate();
       updateUrlPreview();
     }).catch(function (e) {
       show('#up-msg', 'err', '載入清單失敗：' + esc(e.message));
     });
 
+    $('#tgl-all').onclick = function () { toggleGate($('#tgl-all')); };
+    $('#btn-gate-save').onclick = saveGate;
+    $('#f-gate-msg').oninput = function () {
+      state.open.message = $('#f-gate-msg').value;
+      markDirty();
+    };
     $('#btn-save-cfg').onclick = saveCfg;
     $('#btn-clear-token').onclick = function () {
       sessionStorage.removeItem(TOKEN_KEY);

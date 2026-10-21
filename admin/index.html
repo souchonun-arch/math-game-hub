@@ -47,6 +47,53 @@
   table.list th { color: var(--text-soft); font-weight: 700; }
   .url-preview { font-size: 12.5px; color: var(--text-soft); word-break: break-all; margin-top: 6px; }
   .lock-badge { font-size: 12px; background: #eef2ff; color: #4338ca; padding: 3px 9px; border-radius: 7px; font-weight: 700; }
+
+  /* ---- 開放控制開關 ---- */
+  .tgl {
+    display: inline-flex; align-items: center; gap: 9px;
+    background: none; border: none; cursor: pointer; font-family: inherit; padding: 0;
+  }
+  .tgl-track {
+    position: relative; width: 46px; height: 26px; border-radius: 999px;
+    background: #cbd5e1; transition: background .18s ease; flex: 0 0 auto;
+  }
+  .tgl-knob {
+    position: absolute; top: 2px; left: 2px; width: 22px; height: 22px;
+    border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3);
+    transition: left .18s ease;
+  }
+  .tgl.on .tgl-track { background: #16a34a; }
+  .tgl.on .tgl-knob { left: 22px; }
+  .tgl-text { font-size: 13px; font-weight: 800; color: #64748b; min-width: 52px; text-align: left; }
+  .tgl.on .tgl-text { color: #16a34a; }
+  .tgl:disabled { opacity: .5; cursor: not-allowed; }
+
+  .tgl-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    padding: 11px 13px; border: 1.5px solid var(--border); border-radius: 12px;
+  }
+  .tgl-row + .tgl-row { margin-top: 8px; }
+  .tgl-label { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .tgl-label b { font-size: 14px; }
+  .tgl-label span { font-size: 12px; color: var(--text-soft); }
+  .tgl-master {
+    background: #f8fafc; border-color: #94a3b8;
+  }
+  .tgl-master .tgl-label b { font-size: 15.5px; }
+
+  .tgl-section { margin-top: 18px; }
+  .tgl-group-title {
+    font-size: 12px; font-weight: 800; letter-spacing: .6px; color: var(--text-soft);
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  .save-bar {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border);
+  }
+  .save-state { font-size: 12.5px; color: var(--text-soft); }
+  .save-state.dirty { color: #b45309; font-weight: 700; }
+  .save-state.saving { color: #4338ca; font-weight: 700; }
+  .save-state.ok { color: #047857; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -83,7 +130,47 @@
   <div id="admin-body" hidden>
 
     <div class="panel">
-      <h2>1. GitHub 連線</h2>
+      <h2>1. 開放控制 🔒</h2>
+      <p class="hint">
+        想幾時開放就幾時開放。撳掣之後大約 <strong>1–2 分鐘</strong>生效（GitHub Pages 要重新發佈）。
+        三層控制：<strong>全站</strong> → <strong>分區</strong> → <strong>逐款遊戲</strong>，下面一層可以覆寫上面一層。
+      </p>
+
+      <div class="tgl-row tgl-master">
+        <div class="tgl-label">
+          <b>全站</b>
+          <span>一掣開閂成個網站</span>
+        </div>
+        <button type="button" class="tgl" id="tgl-all" data-kind="all">
+          <span class="tgl-track"><span class="tgl-knob"></span></span>
+          <span class="tgl-text">—</span>
+        </button>
+      </div>
+
+      <div class="field" style="margin-top:14px">
+        <label for="f-gate-msg">關閉嗰陣，學生見到嘅字</label>
+        <input type="text" id="f-gate-msg" placeholder="例如：星期五堂上先開放">
+      </div>
+
+      <div class="save-bar" id="gate-bar">
+        <span class="save-state" id="gate-state">已儲存</span>
+        <button class="secondary" id="btn-gate-save" disabled>立即儲存</button>
+      </div>
+      <div class="msg" id="gate-msg"></div>
+
+      <div class="tgl-section">
+        <div class="tgl-group-title">分區</div>
+        <div id="tgl-sections"></div>
+      </div>
+
+      <div class="tgl-section">
+        <div class="tgl-group-title">逐款遊戲</div>
+        <div id="tgl-games"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>2. GitHub 連線</h2>
       <p class="hint">
         只需要填一次（會記喺呢部電腦）。Token 只存喺 sessionStorage —— 關咗分頁就消失。
       </p>
@@ -111,7 +198,7 @@
     </div>
 
     <div class="panel">
-      <h2>2. 上傳新遊戲</h2>
+      <h2>3. 上傳新遊戲</h2>
       <p class="hint">
         只支援單一 HTML 檔（自帶圖片嘅）。如果個遊戲有外部圖檔或 js，請用「方法 A」叫我幫你上架。
       </p>
@@ -145,7 +232,7 @@
     </div>
 
     <div class="panel">
-      <h2>3. 已上架遊戲</h2>
+      <h2>4. 已上架遊戲</h2>
       <p class="hint">呢個清單係由 data/games.json 讀出嚟嘅。</p>
       <table class="list" id="game-table">
         <thead><tr><th>名稱</th><th>分區</th><th>課題</th><th>大小</th></tr></thead>

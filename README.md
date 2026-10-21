@@ -61,16 +61,64 @@
 ├── assets/js/qrcode.js   QR 生成器（自托管，MIT）
 ├── assets/js/admin.js    後台邏輯（GitHub API）
 ├── data/games.json       ★ 自動產生，唔好手改
+├── data/open.json        ★ 開放控制（全站／分區／逐款遊戲）
 ├── data/slugs.json       ★ 網址代號凍結表（手改）
 ├── data/overrides.json   ★ 顯示名／課題／關鍵字（手改）
 ├── data/topics.json      課題分類次序（手改）
 ├── data/sections.json    分區設定（手改）
 ├── assets/img/*.jpg      封面圖（已壓縮，每張約 90KB）
 ├── assets/img/src/       封面圖原檔（2MB／張，唔上傳，只供重新壓縮）
-├── games/<分區>/<slug>/  遊戲本體 + 依附檔
+├── games/<分區>/<slug>/index.html  守門頁（1KB，查開放狀態）
+├── games/<分區>/<slug>/play.html   ★ 遊戲本體 + 依附檔
 ├── scripts/build.py      掃描桌面 → 產生清單 → 複製檔案
+├── scripts/gate_template.html     守門頁模板
 └── scripts/make_covers.py 封面圖裁水印 + 壓縮
 ```
+
+---
+
+## 🔒 開放控制：想幾時開就幾時開
+
+### 點用
+
+開 `/admin/` → 解鎖 → **「1. 開放控制」** → 撳掣 → 等 1–2 分鐘生效。
+
+三層，下面嗰層可以覆寫上面嗰層：
+
+| 層 | 作用 | 例子 |
+|---|---|---|
+| **全站** | 一掣開閂成個網站 | 平時閂住，上堂前撳開 |
+| **分區** | 逐個年級獨立控制 | 淨開三年級、閂住六年級 |
+| **逐款遊戲** | 個別遊戲獨立控制 | 全站閂，但淨開《超市大亨》畀精英組 |
+
+判定順序：**逐款遊戲 → 分區 → 全站**。搵到第一個明確嘅 `true`／`false` 就照佢，冇就跌落下一層。讀唔到 `open.json` 一律當**開放**（寧願漏鎖，都唔可以搞到上唔到堂）。
+
+### 鎖到幾嚴
+
+每款遊戲真正嘅檔案係 `play.html`，而 `index.html` 只係一個 **1KB 守門頁**：
+
+1. 學生撳卡片 → 入到守門頁
+2. 守門頁讀 `data/open.json`
+3. 開放 → 自動跳去 `play.html`（學生完全唔覺）
+4. 未開放 → 停低顯示「🔒 老師仲未開放」+ 你可自訂嘅句子
+
+所以**學生用你畀過嘅任何網址**（首頁、分區頁、遊戲頁、QR Code）都會被擋。
+唯一漏洞：直接打 `play.html` —— 小學生唔會知，而且你隨時可以改用 GitHub Pages 全站落線。
+
+### 手改都得
+
+唔開後台都可以直接改 `data/open.json`：
+
+```json
+{
+  "all": false,
+  "sections": { "p3": true },
+  "games": { "supermarket-tycoon": true },
+  "message": "星期五堂上先開放"
+}
+```
+
+上面嘅意思：全站關，但三年級開、加埋《超市大亨》開。
 
 ---
 

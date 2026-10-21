@@ -1,822 +1,92 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>廚神爭霸戰 — 分數小數百分數大混戰（六年級）</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>"廚神爭霸戰 · 分數小數百分數大混戰"</title>
 <style>
-  :root{
-    --cream:#FFF7EC; --ink:#4A3728; --gold:#F5A623;
-  }
-  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  html,body{height:100%;}
-  body{
-    font-family:"PingFang TC","Microsoft JhengHei","Heiti TC",sans-serif;
-    background:var(--cream); color:var(--ink); overflow:hidden;
-    background-image:radial-gradient(#FFE8C7 1.5px, transparent 1.5px);
-    background-size:26px 26px;
-  }
-  .hidden{display:none !important;}
-  .screen{height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;overflow-y:auto;}
-
-  /* ---------- 開始畫面 ---------- */
-  .title-box{text-align:center;margin-bottom:14px;}
-  .title-box h1{font-size:46px;letter-spacing:4px;
-    background:linear-gradient(180deg,#FF8C42,#E8533F);
-    -webkit-background-clip:text;background-clip:text;color:transparent;
-    text-shadow:0 3px 0 rgba(232,83,63,.12);}
-  .title-box .sub{font-size:17px;color:#9C7B54;margin-top:4px;}
-  .chef-emojis{display:flex;align-items:center;justify-content:center;gap:6px;}
-  .card{background:#fff;border-radius:22px;box-shadow:0 8px 24px rgba(160,110,50,.14);padding:20px 26px;max-width:780px;width:100%;}
-  .row{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;margin:10px 0;}
-  .label{font-weight:700;font-size:16px;}
-  .mode-btn,.diff-btn,.time-btn,.cpu-btn{border:3px solid #EAD9BE;background:#FFFDF8;border-radius:16px;padding:9px 16px;
-    font-size:16px;font-weight:700;cursor:pointer;color:var(--ink);transition:.15s;font-family:inherit;}
-  .mode-btn:hover,.diff-btn:hover,.time-btn:hover,.cpu-btn:hover{transform:translateY(-2px);}
-  .mode-btn.sel,.diff-btn.sel,.time-btn.sel,.cpu-btn.sel{border-color:var(--gold);background:#FFF3D6;box-shadow:0 4px 12px rgba(245,166,35,.35);}
-  .name-input{border:3px solid #EAD9BE;border-radius:14px;padding:7px 12px;font-size:16px;width:130px;
-    text-align:center;font-family:inherit;font-weight:700;color:var(--ink);background:#FFFDF8;}
-  .name-input:focus{outline:none;border-color:var(--gold);}
-  .start-btn{margin-top:6px;border:none;border-radius:999px;padding:14px 58px;font-size:23px;font-weight:900;
-    font-family:inherit;color:#fff;cursor:pointer;letter-spacing:6px;
-    background:linear-gradient(180deg,#FF9A5A,#E8533F);box-shadow:0 6px 0 #B33A26,0 10px 20px rgba(232,83,63,.3);
-    transition:.12s;}
-  .start-btn:hover{transform:translateY(2px);box-shadow:0 4px 0 #B33A26;}
-  .rules{margin-top:14px;font-size:14px;line-height:1.85;color:#8A6D4B;background:#FFF6E3;border-radius:14px;padding:10px 16px;}
-
-  /* ---------- 對戰畫面 ---------- */
-  #screen-battle{justify-content:flex-start;padding:10px 14px;}
-  .hud{width:100%;max-width:1400px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;}
-  .hud-side{display:flex;gap:18px;align-items:center;}
-  .score-box{display:flex;align-items:center;gap:8px;}
-  .chef-img{height:92px;width:auto;filter:drop-shadow(0 4px 8px rgba(160,110,50,.3));animation:bob 2s ease-in-out infinite;}
-  .chef-img.hud{height:58px;animation:none;}
-  .chef-img.winner{height:110px;}
-  .chef-emoji{font-size:52px;line-height:1;}
-  .chef-emoji.small{font-size:40px;}
-  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-  .pname{font-size:14px;font-weight:800;}
-  .pscore{font-size:30px;font-weight:900;line-height:1;transition:.2s;}
-  .pscore.bump{transform:scale(1.35);}
-  .energy{font-size:12px;letter-spacing:2px;margin-top:2px;}
-  .c1{color:#E8533F;} .c2{color:#0FA3A3;} .c3{color:#8E5BD9;}
-  .mid-hud{text-align:center;min-width:150px;}
-  .clock{font-size:42px;font-weight:900;line-height:1;color:var(--ink);}
-  .clock.danger{color:#E8533F;animation:pulse .8s infinite;}
-  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
-  .clock-label{font-size:12px;font-weight:800;color:#9C7B54;margin-top:2px;}
-
-  .arena{max-width:1400px;width:100%;flex:1;display:grid;gap:12px;min-height:0;}
-  .arena.cols-2{grid-template-columns:1fr 1fr;}
-  .arena.cols-3{grid-template-columns:1fr 1fr 1fr;}
-  .panel{--pc:#E8533F;--pcl:#FFE4DE;--pcd:#C23A28;
-    border-radius:20px;padding:10px 12px;display:flex;flex-direction:column;gap:9px;position:relative;
-    background:#fff;box-shadow:0 6px 18px rgba(160,110,50,.13);border-top:8px solid var(--pc);}
-  .panel.p2{--pc:#0FA3A3;--pcl:#DDF5F5;--pcd:#0A7E7E;}
-  .panel.p3{--pc:#8E5BD9;--pcl:#EFE7FC;--pcd:#6A3FB8;}
-  .q-box{background:#FFF9EE;border-radius:14px;padding:8px 12px;text-align:center;}
-  .q-tier{font-size:12px;font-weight:800;color:#B08A3E;}
-  .q-text{font-size:24px;font-weight:900;line-height:1.35;}
-  .q-prompt{font-size:12px;font-weight:800;color:#9C7B54;}
-  .answers{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:9px;min-height:0;transition:filter .3s;}
-  .ans-btn{border:none;border-radius:16px;font-size:20px;font-weight:900;font-family:inherit;cursor:pointer;
-    background:var(--pcl);color:var(--pcd);box-shadow:inset 0 -4px 0 rgba(0,0,0,.08);
-    display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .1s, background .2s;padding:6px;position:relative;}
-  .ans-btn:hover{transform:scale(1.03);}
-  .ans-btn .key{position:absolute;top:5px;left:7px;font-size:10px;font-weight:800;background:rgba(255,255,255,.75);
-    border-radius:6px;padding:1px 6px;color:#9C7B54;}
-  .ans-btn.correct{background:#5FBF6B !important;color:#fff !important;animation:pop .3s;}
-  .ans-btn.wrongpick{background:#B9B1A5 !important;color:#fff !important;animation:shake .3s;}
-  .ans-btn.reveal{background:#5FBF6B !important;color:#fff !important;}
-  @keyframes pop{0%{transform:scale(.9)}60%{transform:scale(1.1)}100%{transform:scale(1)}}
-  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
-  .answers.blurred{filter:blur(7px) saturate(.6);}
-  .answers.blurred .ans-btn{pointer-events:none;}
-  .answers.wiggle .ans-btn{animation:dance .45s infinite;}
-  @keyframes dance{0%,100%{transform:translate(0,0) rotate(0)}25%{transform:translate(3px,-3px) rotate(1.5deg)}50%{transform:translate(-3px,2px) rotate(-1.5deg)}75%{transform:translate(2px,3px) rotate(1deg)}}
-
-  .attacks{display:flex;justify-content:center;}
-  .atk-btn{border:3px dashed #E0C9A0;background:#FFFDF6;border-radius:16px;padding:7px 20px;
-    font-family:inherit;cursor:pointer;text-align:center;transition:.12s;display:flex;align-items:center;gap:9px;}
-  .atk-btn:hover:not(:disabled){transform:translateY(-3px);border-color:var(--gold);background:#FFF3D6;}
-  .atk-btn:disabled{opacity:.38;cursor:not-allowed;border-style:solid;}
-  .atk-btn .ae{font-size:24px;}
-  .atk-btn .an{font-size:15px;font-weight:900;}
-  .atk-btn .ac{font-size:11px;font-weight:800;color:#B08A3E;}
-
-  /* ---------- 真・分數格式（分子上、分母下） ---------- */
-  .frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;
-    margin:0 3px;font-size:.72em;line-height:1.08;font-weight:900;}
-  .frac .fnum{border-bottom:2.5px solid currentColor;padding:0 6px;}
-  .frac .fden{padding:0 6px;}
-
-  /* ---------- 華麗攻擊特效（加強版） ---------- */
-  .panel.shake-hard{animation:shakeHard .5s;}
-  @keyframes shakeHard{
-    0%,100%{transform:translate(0,0) rotate(0)}
-    15%{transform:translate(-14px,8px) rotate(-2deg)}
-    30%{transform:translate(12px,-10px) rotate(2deg)}
-    45%{transform:translate(-10px,-6px) rotate(-1.5deg)}
-    60%{transform:translate(10px,8px) rotate(1.5deg)}
-    75%{transform:translate(-6px,4px) rotate(-1deg)}
-  }
-  .panel.frosted{box-shadow:0 0 0 4px #8FD8F0, 0 0 34px 8px rgba(120,200,240,.55);}
-  .panel.burning{box-shadow:0 0 0 4px #FF8C42, 0 0 38px 10px rgba(255,110,40,.5);animation:burnShake .28s infinite;}
-  @keyframes burnShake{
-    0%,100%{transform:translate(0,0) rotate(0)}
-    25%{transform:translate(-5px,3px) rotate(-.8deg)}
-    75%{transform:translate(5px,-3px) rotate(.8deg)}
-  }
-  .projectile{position:fixed;z-index:90;font-size:64px;pointer-events:none;
-    filter:drop-shadow(0 0 14px rgba(255,190,60,.95)) drop-shadow(0 6px 12px rgba(0,0,0,.35));}
-  .flash{position:absolute;inset:0;border-radius:20px;z-index:8;pointer-events:none;
-    background:radial-gradient(circle at 50% 45%, rgba(255,255,210,.95), rgba(255,170,60,.55) 55%, transparent 78%);
-    animation:flashOut .55s forwards;}
-  @keyframes flashOut{0%{opacity:1}100%{opacity:0}}
-  .screen-flash{position:fixed;inset:0;z-index:80;pointer-events:none;animation:flashOut .45s forwards;}
-  .ring{position:absolute;left:50%;top:42%;width:130px;height:130px;border-radius:50%;
-    border:7px solid rgba(255,180,60,.95);transform:translate(-50%,-50%);pointer-events:none;z-index:8;}
-  .float-hit{position:absolute;left:50%;top:26%;transform:translateX(-50%);font-size:28px;font-weight:900;
-    color:#E8533F;text-shadow:0 2px 0 #fff,0 0 12px rgba(255,180,60,.8);z-index:9;pointer-events:none;white-space:nowrap;}
-  .burst{position:absolute;z-index:9;pointer-events:none;font-size:32px;}
-  .rain{position:absolute;z-index:6;pointer-events:none;font-size:28px;animation:rainFall linear forwards;}
-  @keyframes rainFall{0%{transform:translateY(-52px) rotate(0);opacity:1}85%{opacity:1}100%{transform:translateY(125%) rotate(320deg);opacity:0}}
-  .fx-giant{position:absolute;inset:0;border-radius:20px;display:flex;align-items:center;justify-content:center;
-    z-index:7;pointer-events:none;font-size:110px;animation:giantPulse .55s ease-in-out infinite;
-    filter:drop-shadow(0 0 18px rgba(255,200,80,.7));}
-  .fx-giant.block{pointer-events:auto;}
-  @keyframes giantPulse{0%,100%{transform:scale(1) rotate(-4deg)}50%{transform:scale(1.25) rotate(4deg)}}
-  .answers.blurred-lite{filter:blur(3px) saturate(.75);}
-  /* 巨型旋轉菜（嘲笑專用） */
-  .mock-spin{animation:mockSpin 1.1s linear infinite;}
-  @keyframes mockSpin{
-    0%{transform:rotate(0) scale(1)}
-    25%{transform:rotate(90deg) scale(1.2)}
-    50%{transform:rotate(180deg) scale(1)}
-    75%{transform:rotate(270deg) scale(1.2)}
-    100%{transform:rotate(360deg) scale(1)}
-  }
-  .mock-cap{position:absolute;bottom:16%;left:50%;transform:translateX(-50%);font-size:20px;font-weight:900;
-    color:#3E8E41;background:rgba(255,255,255,.92);border-radius:12px;padding:5px 16px;white-space:nowrap;
-    animation:capWobble .5s ease-in-out infinite;box-shadow:0 3px 10px rgba(60,140,60,.35);}
-  @keyframes capWobble{0%,100%{transform:translateX(-50%) rotate(-3deg)}50%{transform:translateX(-50%) rotate(3deg)}}
-
-  .toast{position:fixed;left:50%;top:12px;transform:translateX(-50%);background:var(--ink);color:#fff;
-    font-size:15px;font-weight:700;border-radius:999px;padding:7px 20px;opacity:0;transition:.25s;pointer-events:none;white-space:nowrap;z-index:50;}
-  .toast.show{opacity:1;}
-
-  /* ---------- 結算畫面 ---------- */
-  .winner-banner{font-size:36px;font-weight:900;margin:6px 0 10px;}
-  .stat-grid{display:flex;gap:14px;justify-content:center;margin-bottom:14px;flex-wrap:wrap;}
-  .stat-card{border-radius:16px;padding:12px 22px;text-align:center;min-width:150px;}
-  .stat-card .sc-name{font-weight:800;font-size:15px;}
-  .stat-card .sc-score{font-size:36px;font-weight:900;}
-  .stat-card .sc-sub{font-size:13px;color:#7A6248;}
-  .review{max-height:30vh;overflow-y:auto;text-align:left;font-size:14.5px;line-height:1.7;background:#FFF9EE;
-    border-radius:14px;padding:12px 16px;width:100%;}
-  .review h3{font-size:15px;margin:6px 0;}
-  .review .rv-item{padding:5px 0;border-bottom:1px dashed #EAD9BE;}
-  .review .rv-ans{color:#2E7D32;font-weight:800;}
-  .review .rv-bad{color:#B0583F;font-weight:800;}
-  .confetti{position:fixed;top:-60px;font-size:30px;z-index:99;pointer-events:none;animation:fall linear forwards;}
-  @keyframes fall{to{transform:translateY(110vh) rotate(360deg);}}
-  @media (max-width:900px){
-    .title-box h1{font-size:32px;} .q-text{font-size:19px;} .ans-btn{font-size:15px;}
-    .chef-img.hud{height:40px;} .pscore{font-size:24px;} .clock{font-size:30px;}
-  }
+:root{--bg:#0b1020;--panel:#141c33;--line:#26325a;--txt:#eaf1ff;--sub:#8fa3c8}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 18%,#182342,#0b1020 72%);
+  color:var(--txt);font:16px/1.5 -apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
+  display:flex;align-items:center;justify-content:center;padding:18px;-webkit-font-smoothing:antialiased}
+.box{width:100%;max-width:430px;background:var(--panel);border:2px solid var(--line);
+  border-radius:18px;overflow:hidden;box-shadow:0 20px 54px rgba(0,0,0,.55);text-align:center}
+.cover{height:148px;position:relative;background:#0e1730;overflow:hidden}
+.cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 42%}
+.ph{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:46px}
+.body{padding:22px 20px 26px}
+h1{margin:0 0 8px;font-size:19px;line-height:1.4}
+p{margin:0;color:var(--sub);font-size:14px;line-height:1.65}
+.lock{font-size:42px;line-height:1;margin-bottom:8px;display:inline-block;
+  animation:sw 1.7s ease-in-out infinite}
+@keyframes sw{0%,100%{transform:rotate(-9deg) translateY(0)}50%{transform:rotate(9deg) translateY(-3px)}}
+.spin{width:26px;height:26px;margin:0 auto 12px;border:3px solid #2b3a63;
+  border-top-color:#ffb020;border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.back{display:inline-block;margin-top:16px;color:var(--sub);font-size:13px;text-decoration:underline}
+@media (prefers-reduced-motion:reduce){.lock,.spin{animation:none}}
 </style>
 </head>
 <body>
-
-<div class="toast" id="toast"></div>
-
-<!-- ================= 開始畫面 ================= -->
-<div id="screen-start" class="screen">
-  <div class="title-box">
-    <div class="chef-emojis"><img src="chef1.png" class="chef-img" alt="黑圍裙廚師"> <span style="font-size:38px;">⚔️</span> <img src="chef2.png" class="chef-img" alt="紅圍裙廚師"></div>
-    <h1>廚神爭霸戰</h1>
-    <div class="sub">六年級數學・分數小數百分數大混戰</div>
+<div class="box">
+  <div class="cover">
+    <img id="cv" alt="">
+    <div class="ph" id="ph">🎮</div>
   </div>
-  <div class="card">
-    <div class="row"><span class="label">模式：</span>
-      <button class="mode-btn" data-mode="solo">👤 單人 vs 電腦</button>
-      <button class="mode-btn sel" data-mode="duo">👥 雙人對戰</button>
-      <button class="mode-btn" data-mode="trio">👪 三人對戰</button>
-    </div>
-    <div class="row hidden" id="cpu-row"><span class="label">電腦強度：</span>
-      <button class="cpu-btn" data-cpu="easy">🐣 初級</button>
-      <button class="cpu-btn sel" data-cpu="normal">🐔 中級</button>
-      <button class="cpu-btn" data-cpu="hard">🦅 高級</button>
-    </div>
-    <div class="row" id="names-row"></div>
-    <div class="row"><span class="label">難度：</span>
-      <button class="diff-btn" data-diff="basic">基礎 ★☆☆<br><small>直接互化</small></button>
-      <button class="diff-btn sel" data-diff="mixed">混合 🎲</button>
-      <button class="diff-btn" data-diff="mid">發展 ★★☆<br><small>進階互化・成數</small></button>
-      <button class="diff-btn" data-diff="adv">拓展 ★★★<br><small>比較・應用</small></button>
-    </div>
-    <div class="row"><span class="label">時限：</span>
-      <button class="time-btn sel" data-time="40">40 秒</button>
-    </div>
-    <div class="row"><button class="start-btn" id="btn-start">開 賽</button></div>
-    <div class="rules">
-      📜 <b>玩法</b>：各人各自答自己的題目，鬥快鬥多！題庫有 <b>250 題</b>，全班輪住玩都唔怕重複。答啱 <b>+10 分</b>即刻出下一題；答錯 <b>−2 分</b>，睇一眼正確答案即刻繼續。時間到，分高者勝。<br>
-      🧠 <b>秘訣</b>：小數化百分數乘 100；百分數化小數除以 100；分數先化小數再化百分數！<br>
-      🎲 <b>搗蛋</b>：答對 1 題儲 1 格能量（上限 4 格）。按「搗蛋」<b>扣自己 1 分</b>＋1 格能量，隨機向對手施放搗蛋效果——洋蔥煙霧、打翻調味、香蕉皮（跣親要狂按 20 下！）、急凍、烈火、飛鑊、菜葉紛飛！<br>
-      ⌨️ <b>鍵盤</b>：選手 1 用 <b>1 2 3 4</b>＋<b>Q</b>；選手 2 用 <b>7 8 9 0</b>＋<b>P</b>；選手 3 用 <b>F G H J</b>＋<b>B</b>（也可直接點按）。
-    </div>
-  </div>
+  <div class="body" id="body"><div class="spin"></div><p>檢查緊…</p></div>
 </div>
-
-<!-- ================= 對戰畫面 ================= -->
-<div id="screen-battle" class="screen hidden">
-  <div class="hud">
-    <div class="hud-side" id="hud-left"></div>
-    <div class="mid-hud">
-      <div class="clock" id="clock">40</div>
-      <div class="clock-label">剩餘時間（秒）</div>
-    </div>
-    <div class="hud-side" id="hud-right"></div>
-  </div>
-  <div class="arena cols-2" id="arena"></div>
-</div>
-
-<!-- ================= 結算畫面 ================= -->
-<div id="screen-result" class="screen hidden">
-  <div class="card" style="text-align:center;">
-    <div id="result-emoji" style="min-height:60px;">🏆</div>
-    <div class="winner-banner" id="result-title"></div>
-    <div class="stat-grid" id="stat-grid"></div>
-    <div class="review" id="review-box"></div>
-    <div class="row" style="margin-top:14px;"><button class="start-btn" id="btn-again" style="font-size:19px;padding:12px 44px;">再 玩 一 次</button></div>
-  </div>
-</div>
-
-<script src="bank-p6.js"></script>
 <script>
-/* ==================== 題庫：分數、小數、百分數互化（六上第5課，60 題） ==================== */
-const BANK = BANK_P6;
-const TIER_LABEL = {basic:"★☆☆ 直接互化", mid:"★★☆ 進階互化・成數", adv:"★★★ 比較・應用", mixed:"混合 🎲"};
+var SEC = "p6", SLUG = "decimal-fraction-percent", TITLE = "廚神爭霸戰 · 分數小數百分數大混戰";
+var done = false;
+var cv = document.getElementById('cv');
+cv.onerror = function () { cv.style.display = 'none'; document.getElementById('ph').style.display = 'flex'; };
+cv.src = '../../../assets/img/' + SLUG + '.jpg';
 
-/* ==================== 搗蛋效果（隨機一種；自己 −1 分） ==================== */
-const FX = [
-  {e:"🧅", n:"洋蔥煙霧", dur:3500, desc:"按鈕被濃煙遮住",   rain:["🧅","💨","🟣"],           color:"rgba(150,90,200,"},
-  {e:"🌀", n:"打翻調味", dur:0,    desc:"選項即時打亂",     rain:["🌶️","🧂","🧄"],           color:"rgba(245,166,35,"},
-  {e:"🍌", n:"香蕉皮",   dur:0,    desc:"跣親要狂按 20 下先起得返身", rain:["🍌","🍌","💫"], color:"rgba(255,210,50,"},
-  {e:"🥶", n:"急凍攻擊", dur:3000, desc:"完全不能作答",     rain:["❄️","🧊","🥶"],           color:"rgba(120,200,240,"},
-  {e:"🔥", n:"烈火熊熊", dur:3000, desc:"灶台著火猛烈搖晃", rain:["🔥","🔥","💥"],           color:"rgba(255,110,40,"},
-  {e:"🍳", n:"飛鑊突襲", dur:1500, desc:"被鑊敲暈，短暫不能作答", rain:["🍳","💫","⭐"],      color:"rgba(140,140,150,"},
-  {e:"🥬", n:"菜葉紛飛", dur:4200, desc:"菜葉遮眼，視線模糊", rain:["🥬","🥕","🍅","🥦"],     color:"rgba(90,180,80,"}
-];
-const ENERGY_MAX = 4;
-/* 三個玩家嘅鍵盤配置 */
-const KEYS = [
-  {ans:["1","2","3","4"], atk:"q"},
-  {ans:["7","8","9","0"], atk:"p"},
-  {ans:["f","g","h","j"], atk:"b"}
-];
-/* 玩家外觀：顏色 class、頭像 */
-const LOOKS = [
-  {cls:"p1", colorCls:"c1", avatar:'<img src="chef1.png" class="chef-img hud" alt="">'},
-  {cls:"p2", colorCls:"c2", avatar:'<img src="chef2.png" class="chef-img hud" alt="">'},
-  {cls:"p3", colorCls:"c3", avatar:'<span class="chef-emoji">🧑‍🍳</span>'}
-];
-const CPU_LOOK = {cls:"p2", colorCls:"c2", avatar:'<span class="chef-emoji">🤖</span>'};
-const CPU_LV = {
-  easy:  {label:"🐣 初級", min:5000, max:8000, acc:0.70, atk:0},
-  normal:{label:"🐔 中級", min:3500, max:5500, acc:0.82, atk:0.25},
-  hard:  {label:"🦅 高級", min:2500, max:4000, acc:0.92, atk:0.5}
-};
-
-/* ==================== 遊戲狀態 ==================== */
-let G = null;
-let modeSel = "duo", diffSel = "mixed", timeSel = 40, cpuSel = "normal";
-const DECKS = {basic:[], mid:[], adv:[], mixed:[]};
-
-function shuffle(arr){ for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
-const $ = id => document.getElementById(id);
-const rand = (a,b)=> a + Math.random()*(b-a);
-/* 真・分數格式：把文字中的 n/d 轉為上下排列的分數 */
-function fracHTML(text){
-  return String(text).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-    .replace(/(\d+)\/(\d+)/g,'<span class="frac"><span class="fnum">$1</span><span class="fden">$2</span></span>');
-}
-
-function poolOf(diff){ return diff==="mixed" ? [...BANK.basic, ...BANK.mid, ...BANK.adv] : BANK[diff]; }
-function tierOf(q){ for(const t of ["basic","mid","adv"]) if(BANK[t].some(x=>x.q===q.q)) return t; return "basic"; }
-function drawOne(p){
-  const deck = DECKS[diffSel], pool = poolOf(diffSel);
-  if(deck.length === 0) deck.push(...shuffle(pool.map((_,i)=>i)));
-  let idx = deck.pop();
-  // 盡量避免玩家同時撞到同一題
-  const clash = G.players.some((pl,pi)=> pi!==p && pl.q && pool[idx].q === pl.q.q);
-  if(clash && deck.length > 0){ const swap = deck.pop(); deck.push(idx); idx = swap; }
-  return {...pool[idx], tier: diffSel==="mixed" ? tierOf(pool[idx]) : diffSel};
-}
-
-/* ---------- 音效 ---------- */
-let audioCtx = null, soundOn = true;
-function beep(freq, dur=0.12, type="sine", vol=0.18){
-  if(!soundOn) return;
-  try{
-    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
-    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-    o.type=type; o.frequency.value=freq; g.gain.value=vol;
-    o.connect(g); g.connect(audioCtx.destination);
-    o.start(); g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+dur);
-    o.stop(audioCtx.currentTime+dur);
-  }catch(e){}
-}
-const sfxCorrect = ()=>{beep(660,.09);setTimeout(()=>beep(880,.12),80);};
-const sfxWrong   = ()=>beep(160,.22,"sawtooth",.12);
-const sfxAttack  = ()=>{beep(300,.08,"square",.12);setTimeout(()=>beep(200,.12,"square",.12),70);};
-const sfxTick    = ()=>beep(520,.05,"sine",.08);
-
-/* ---------- 開始畫面互動 ---------- */
-function bindSel(cls, cb){
-  document.querySelectorAll("."+cls).forEach(b=>{
-    b.onclick = ()=>{ document.querySelectorAll("."+cls).forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); cb(b); };
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
   });
 }
-bindSel("mode-btn", b=>{ modeSel=b.dataset.mode; renderNameInputs(); $("cpu-row").classList.toggle("hidden", modeSel!=="solo"); });
-bindSel("diff-btn", b=>{ diffSel=b.dataset.diff; });
-bindSel("time-btn", b=>{ timeSel=+b.dataset.time; });
-bindSel("cpu-btn",  b=>{ cpuSel=b.dataset.cpu; });
+function show(html) { document.getElementById('body').innerHTML = html; }
 
-function humanCount(){ return modeSel==="solo" ? 1 : (modeSel==="duo" ? 2 : 3); }
-function renderNameInputs(){
-  const n = humanCount();
-  const labels = ["🐥 選手 1：","🐥 選手 2：","🐥 選手 3："];
-  const defs = ["小廚神A","小廚神B","小廚神C"];
-  let html = "";
-  for(let i=0;i<n;i++) html += `<span class="label">${labels[i]}</span><input id="name-${i}" class="name-input" maxlength="6" value="${defs[i]}">`;
-  if(modeSel==="solo") html += `<span class="label">對手：</span><span style="font-weight:900;font-size:17px;">🤖 電腦廚神</span>`;
-  $("names-row").innerHTML = html;
+/* 三層判定：個別遊戲 > 分區 > 全站（缺省 = 開放） */
+function isOpen(cfg) {
+  var v = cfg.games && cfg.games[SLUG];
+  if (v === true || v === false) return v;
+  v = cfg.sections && cfg.sections[SEC];
+  if (v === true || v === false) return v;
+  return cfg.all !== false;
 }
-renderNameInputs();
-
-/* ---------- 建立對戰畫面 ---------- */
-function buildArena(){
-  const arena = $("arena");
-  arena.className = "arena cols-" + G.players.length;
-  arena.innerHTML = "";
-  G.players.forEach((pl,p)=>{
-    const panel = document.createElement("div");
-    panel.className = "panel " + pl.look.cls;
-    panel.id = "panel-"+p;
-    panel.innerHTML = `
-      <div class="q-box">
-        <div class="q-tier" id="q-tier-${p}"></div>
-        <div class="q-text" id="q-text-${p}"></div>
-        <div class="q-prompt">邊個答案啱？</div>
-      </div>
-      <div class="answers" id="answers-${p}"></div>
-      <div class="attacks" id="attacks-${p}"></div>`;
-    arena.appendChild(panel);
-    // 搗蛋掣
-    const btn = document.createElement("button");
-    btn.className="atk-btn"; btn.id=`atk-${p}`;
-    const keyHint = pl.isCPU ? "" : ` [${KEYS[p].atk.toUpperCase()}]`;
-    btn.innerHTML = `<span class="ae">🎲</span><span style="text-align:left;"><span class="an">搗蛋！</span><br><span class="ac">⚡1 ｜ 自己 −1分 ｜ 隨機效果${keyHint}</span></span>`;
-    btn.onclick = ()=>doAttack(p);
-    panel.querySelector(".attacks").appendChild(btn);
-  });
-  // HUD
-  const left = $("hud-left"), right = $("hud-right");
-  left.innerHTML = ""; right.innerHTML = "";
-  G.players.forEach((pl,p)=>{
-    const box = document.createElement("div");
-    box.className = "score-box";
-    box.innerHTML = `${pl.look.avatar}<div><div class="pname ${pl.look.colorCls}">${pl.name}</div><div class="pscore ${pl.look.colorCls}" id="hud-score-${p}">0</div><div class="energy" id="hud-energy-${p}"></div></div>`;
-    (p===0 ? left : right).appendChild(box);
-  });
+function go() { location.replace('play.html'); }
+function failOpen() {
+  if (done) return;
+  done = true;
+  show('<h1>網絡唔太穩定</h1><p>3 秒後照樣繼續，唔阻住你玩…</p>');
+  setTimeout(go, 3000);
+}
+function locked(msg) {
+  show('<div class="lock">🔒</div><h1>' + esc(msg || '老師仲未開放呢個遊戲') + '</h1>' +
+       '<p>上堂嗰陣老師一撳掣就開，到時再嚟玩啦！</p>' +
+       '<a class="back" href="../../../">← 返去遊戲總站</a>');
 }
 
-/* ---------- 開賽 ---------- */
-$("btn-start").onclick = ()=>{
-  beep(520,.1);
-  const nHuman = humanCount();
-  const total = modeSel==="solo" ? 2 : nHuman;
-  const players = [];
-  for(let i=0;i<total;i++){
-    const isCPU = modeSel==="solo" && i===1;
-    players.push({
-      name: isCPU ? "電腦廚神" : (($("name-"+i)?.value.trim()) || ("選手"+(i+1))),
-      isCPU,
-      look: isCPU ? CPU_LOOK : LOOKS[i],
-      score:0, energy:0, correct:0, wrong:0, locked:false, frozen:false,
-      q:null, options:[], fxTimers:[], wrongList:[], cpuTimer:null
-    });
-  }
-  G = { active:true, timeLeft:timeSel, timerId:null, players };
-  buildArena();
-  $("screen-start").classList.add("hidden");
-  $("screen-result").classList.add("hidden");
-  $("screen-battle").classList.remove("hidden");
-  G.players.forEach((pl,p)=>{ nextQ(p); if(pl.isCPU) cpuLoop(p); });
-  startClock();
-  updateHud();
-};
-
-/* ---------- 個人題目流 ---------- */
-function nextQ(p){
-  const pl = G.players[p];
-  pl.locked = false;
-  pl.q = drawOne(p);
-  pl.options = shuffle(pl.q.o.map((text,i)=>({text, ok: i===pl.q.a})));
-  $("q-tier-"+p).textContent = TIER_LABEL[pl.q.tier];
-  $("q-text-"+p).innerHTML = fracHTML(pl.q.q);
-  renderAnswers(p);
-}
-function renderAnswers(p){
-  const box = $("answers-"+p); if(!box) return; box.innerHTML="";
-  G.players[p].options.forEach((opt,i)=>{
-    const b = document.createElement("button");
-    b.className = "ans-btn";
-    const keyHint = G.players[p].isCPU ? "" : `<span class="key">${KEYS[p].ans[i].toUpperCase()}</span>`;
-    b.innerHTML = keyHint + fracHTML(opt.text);
-    b.onclick = ()=>doAnswer(p,i);
-    box.appendChild(b);
-  });
-}
-
-/* ---------- 總倒數 ---------- */
-function startClock(){
-  const clock = $("clock");
-  clock.textContent = G.timeLeft;
-  clock.classList.remove("danger");
-  G.timerId = setInterval(()=>{
-    G.timeLeft--;
-    clock.textContent = Math.max(0, G.timeLeft);
-    if(G.timeLeft <= 10 && G.timeLeft > 0){ clock.classList.add("danger"); sfxTick(); }
-    if(G.timeLeft <= 0){ clearInterval(G.timerId); endGame(); }
-  },1000);
-}
-
-/* ---------- 作答（人類同電腦都用呢個） ---------- */
-function doAnswer(p,i){
-  if(!G || !G.active) return;
-  const pl = G.players[p];
-  if(pl.locked || pl.frozen) return;
-  const opt = pl.options[i];
-  if(!opt) return;
-  pl.locked = true;
-  if(opt.ok){
-    pl.correct++;
-    pl.score += 10;
-    pl.energy = Math.min(ENERGY_MAX, pl.energy+1);
-    sfxCorrect();
-    markButton(p,i,"correct");
-    bumpScore(p);
-    setTimeout(()=>{ if(G && G.active) nextQ(p); }, 320);
-  }else{
-    pl.wrong++;
-    pl.score = Math.max(0, pl.score-2);
-    sfxWrong();
-    markButton(p,i,"wrongpick");
-    pl.options.forEach((o,j)=>{ if(o.ok) markButton(p,j,"reveal"); });
-    pl.wrongList.push({q:pl.q.q, picked:opt.text, correct:pl.q.o[pl.q.a], tip:pl.q.tip});
-    bumpScore(p);
-    setTimeout(()=>{ if(G && G.active) nextQ(p); }, 750);
-  }
-  updateHud();
-}
-function markButton(p,i,cls){
-  const box = $("answers-"+p);
-  if(box && box.children[i]) box.children[i].classList.add(cls);
-}
-
-/* ---------- 電腦玩家 ---------- */
-function cpuLoop(p){
-  const pl = G.players[p], lv = CPU_LV[cpuSel];
-  const step = ()=>{
-    if(!G || !G.active) return;
-    if(pl.locked || pl.frozen){
-      pl.cpuTimer = setTimeout(step, 450); return;
+fetch('../../../data/open.json', { cache: 'no-store' })
+  .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+  .then(function (cfg) {
+    done = true;
+    if (isOpen(cfg)) {
+      show('<h1>準備中…</h1><p>' + esc(TITLE) + '</p>');
+      setTimeout(go, 250);
+    } else {
+      locked(cfg.message);
     }
-    // 揀答案
-    if(Math.random() < lv.acc){
-      const idx = pl.options.findIndex(o=>o.ok);
-      doAnswer(p, idx);
-    }else{
-      const wrongIdx = pl.options.map((o,i)=>i).filter(i=>!pl.options[i].ok);
-      doAnswer(p, wrongIdx[Math.floor(Math.random()*wrongIdx.length)]);
-    }
-    // 電腦都會搗蛋！
-    if(lv.atk > 0 && pl.energy >= 1 && Math.random() < lv.atk){
-      setTimeout(()=>{ if(G && G.active) doAttack(p); }, 600);
-    }
-    pl.cpuTimer = setTimeout(step, rand(lv.min, lv.max));
-  };
-  pl.cpuTimer = setTimeout(step, rand(lv.min, lv.max));
-}
+  })
+  .catch(failOpen);
 
-/* ---------- 搗蛋（隨機效果、隨機目標；自己 −1 分） ---------- */
-function doAttack(p){
-  if(!G || !G.active) return;
-  const pl = G.players[p];
-  if(pl.energy < 1){ if(!pl.isCPU) toast(`⚡ ${pl.name} 能量不足，先答對一題儲能量吧！`); return; }
-  const targets = G.players.map((x,i)=>i).filter(i=>i!==p);
-  if(targets.length===0) return;
-  pl.energy -= 1;
-  pl.score = Math.max(0, pl.score-1);
-  const tp = targets[Math.floor(Math.random()*targets.length)];
-  const fx = FX[Math.floor(Math.random()*FX.length)];
-  sfxAttack();
-  bumpScore(p);
-  toast(`🎲 ${pl.name} 犧牲 1 分搗蛋，向 ${G.players[tp].name} 施放「${fx.e}${fx.n}」——${fx.desc}！`);
-  applyFx(tp, fx);
-  updateHud();
-}
-
-/* ---------- 華麗演出：投射 → 爆炸 → 效果 ---------- */
-function applyFx(tp, fx){
-  const panels = G.players.map((_,i)=>$("panel-"+i)).filter(Boolean);
-  const fromPanel = panels.find((_,i)=>i!==tp) || panels[0];
-  const toPanel = $("panel-"+tp);
-  const r1 = fromPanel.getBoundingClientRect(), r2 = toPanel.getBoundingClientRect();
-  const proj = document.createElement("div");
-  proj.className = "projectile";
-  proj.textContent = fx.e;
-  proj.style.left = (r1.left + r1.width/2 - 27) + "px";
-  proj.style.top  = (r1.top + r1.height/2 - 27) + "px";
-  document.body.appendChild(proj);
-  const dx = (r2.left + r2.width/2) - (r1.left + r1.width/2);
-  const dy = (r2.top + r2.height/2) - (r1.top + r1.height/2);
-  proj.animate([
-    {transform:"translate(0,0) rotate(0deg) scale(.7)", opacity:1},
-    {transform:`translate(${dx}px,${dy}px) rotate(720deg) scale(1.6)`, opacity:1}
-  ], {duration:520, easing:"cubic-bezier(.3,.6,.4,1)", fill:"forwards"});
-  setTimeout(()=>{ proj.remove(); impactFx(tp, fx); }, 520);
-}
-function impactFx(tp, fx){
-  const panel = $("panel-"+tp);
-  if(!panel) return;
-  // 全屏閃光（跟招式主題色）
-  const sf = document.createElement("div");
-  sf.className = "screen-flash";
-  sf.style.background = fx.color + "0.30)";
-  document.body.appendChild(sf);
-  setTimeout(()=>sf.remove(), 500);
-  // 面板爆光一閃
-  const fl = document.createElement("div");
-  fl.className = "flash"; panel.appendChild(fl);
-  setTimeout(()=>fl.remove(), 600);
-  // 猛烈震屏
-  panel.classList.add("shake-hard");
-  setTimeout(()=>panel.classList.remove("shake-hard"), 520);
-  // 雙重衝擊波
-  for(let i=0;i<2;i++){
-    const ring = document.createElement("div");
-    ring.className = "ring"; panel.appendChild(ring);
-    ring.animate([
-      {transform:"translate(-50%,-50%) scale(.2)", opacity:1},
-      {transform:"translate(-50%,-50%) scale(2.6)", opacity:0}
-    ], {duration:520+i*180, delay:i*130, easing:"ease-out"});
-    setTimeout(()=>ring.remove(), 1000+i*180);
-  }
-  // 「中招！」浮字
-  const hit = document.createElement("div");
-  hit.className = "float-hit"; hit.textContent = "💥 中招！";
-  panel.appendChild(hit);
-  hit.animate([
-    {transform:"translateX(-50%) translateY(0) scale(.6)", opacity:0},
-    {transform:"translateX(-50%) translateY(-12px) scale(1.2)", opacity:1, offset:.3},
-    {transform:"translateX(-50%) translateY(-50px) scale(1)", opacity:0}
-  ], {duration:900, easing:"ease-out"});
-  setTimeout(()=>hit.remove(), 950);
-  // emoji 爆炸四散（加碼版）
-  const pool = fx.rain.concat(["✨","⭐"]);
-  for(let i=0;i<18;i++){
-    const b = document.createElement("div");
-    b.className = "burst";
-    b.textContent = pool[Math.floor(Math.random()*pool.length)];
-    b.style.left = "50%"; b.style.top = "42%";
-    b.style.fontSize = (24+Math.random()*18)+"px";
-    panel.appendChild(b);
-    const ang = Math.random()*Math.PI*2, dist = 110 + Math.random()*190;
-    b.animate([
-      {transform:"translate(-50%,-50%) scale(.5)", opacity:1},
-      {transform:`translate(calc(-50% + ${Math.cos(ang)*dist}px), calc(-50% + ${Math.sin(ang)*dist}px)) scale(1.6) rotate(${Math.random()*540}deg)`, opacity:0}
-    ], {duration:700+Math.random()*350, easing:"cubic-bezier(.1,.7,.4,1)"});
-    setTimeout(()=>b.remove(), 1100);
-  }
-  // 效果正式展開
-  startFx(tp, fx);
-}
-function startFx(tp, fx){
-  const opp = G.players[tp];
-  const box = $("answers-"+tp), panel = $("panel-"+tp);
-  if(fx.n==="洋蔥煙霧"){
-    box.classList.add("blurred");
-    emojiRain(panel, fx.rain, fx.dur);
-    opp.fxTimers.push(setTimeout(()=>box.classList.remove("blurred"), fx.dur));
-  }else if(fx.n==="打翻調味"){
-    emojiRain(panel, fx.rain, 1800);
-    shuffle(opp.options); renderAnswers(tp);
-  }else if(fx.n==="香蕉皮"){
-    bananaMash(tp, fx);
-  }else if(fx.n==="急凍攻擊"){
-    opp.frozen = true;
-    panel.classList.add("frosted");
-    giantEmoji(panel, "🥶❄️", fx.dur, true);
-    emojiRain(panel, fx.rain, fx.dur);
-    opp.fxTimers.push(setTimeout(()=>{ opp.frozen=false; panel.classList.remove("frosted"); }, fx.dur));
-  }else if(fx.n==="烈火熊熊"){
-    panel.classList.add("burning");
-    giantEmoji(panel, "🔥", fx.dur, false);
-    emojiRain(panel, fx.rain, fx.dur);
-    opp.fxTimers.push(setTimeout(()=>panel.classList.remove("burning"), fx.dur));
-  }else if(fx.n==="飛鑊突襲"){
-    opp.frozen = true;
-    giantEmoji(panel, "💫😵", fx.dur, true);
-    emojiRain(panel, fx.rain, fx.dur+800);
-    panel.classList.add("shake-hard");
-    opp.fxTimers.push(setTimeout(()=>{ opp.frozen=false; panel.classList.remove("shake-hard"); }, fx.dur));
-  }else if(fx.n==="菜葉紛飛"){
-    box.classList.add("blurred-lite");
-    emojiRain(panel, fx.rain, fx.dur);
-    spinningVeggie(panel, fx.dur);
-    opp.fxTimers.push(setTimeout(()=>box.classList.remove("blurred-lite"), fx.dur));
-  }
-}
-/* 菜葉紛飛：巨型旋轉菜喺面板中間恥笑對手 */
-function spinningVeggie(panel, dur){
-  const ov = document.createElement("div");
-  ov.className = "fx-giant";
-  const veg = document.createElement("div");
-  veg.className = "mock-spin";
-  const veggies = ["🥬","🥕","🍅","🥦","🌽","🥒"];
-  veg.textContent = veggies[0];
-  const cap = document.createElement("div");
-  cap.className = "mock-cap";
-  cap.textContent = "請你食菜啦！😝";
-  ov.appendChild(veg); ov.appendChild(cap);
-  panel.appendChild(ov);
-  let i = 0;
-  const spin = setInterval(()=>{
-    if(!document.body.contains(ov)){ clearInterval(spin); return; }
-    i = (i+1) % veggies.length;
-    veg.textContent = veggies[i];
-  }, 350);
-  setTimeout(()=>{ ov.remove(); clearInterval(spin); }, dur);
-}
-/* 香蕉皮：跣親！要狂按 20 下先起得返身 */
-function bananaMash(tp, fx){
-  const pl = G.players[tp], panel = $("panel-"+tp);
-  pl.frozen = true;
-  let left = 20;
-  const ov = document.createElement("div");
-  ov.className = "fx-giant block";
-  ov.style.animation = "none";
-  ov.style.background = "rgba(255,246,200,.78)";
-  ov.style.borderRadius = "20px";
-  const inner = document.createElement("div");
-  inner.style.textAlign = "center";
-  inner.innerHTML = `<div style="font-size:56px;">🍌💦</div><div style="font-size:17px;font-weight:900;color:#B33A26;background:rgba(255,255,255,.9);border-radius:12px;padding:4px 14px;display:inline-block;">跣親！狂按掣爬起身！</div>`;
-  const btn = document.createElement("button");
-  btn.className = "start-btn";
-  btn.style.cssText = "font-size:22px;padding:12px 34px;letter-spacing:2px;margin-top:10px;display:block;margin-left:auto;margin-right:auto;";
-  const refresh = ()=>{ btn.textContent = `起身！(${left})`; };
-  refresh();
-  const press = ()=>{
-    if(!document.body.contains(ov)) return;
-    left--;
-    beep(380 + (20-left)*24, .05, "square", .1);
-    if(left<=0){ ov.remove(); pl.frozen = false; }
-    else{ refresh(); btn.animate([{transform:"scale(.88)"},{transform:"scale(1)"}],{duration:90}); }
-  };
-  btn.onclick = press;
-  inner.appendChild(btn);
-  ov.appendChild(inner);
-  panel.appendChild(ov);
-  emojiRain(panel, fx.rain, 1800);
-  // 電腦中招會自動狂按
-  if(pl.isCPU){
-    const auto = setInterval(()=>{
-      if(!G || !G.active || !document.body.contains(ov)){ clearInterval(auto); return; }
-      press();
-    }, 180);
-    pl.fxTimers.push(setTimeout(()=>clearInterval(auto), 6000));
-  }
-}
-function emojiRain(panel, emojis, dur){
-  const end = Date.now() + dur;
-  const drop = ()=>{
-    if(Date.now() > end || !document.body.contains(panel)) return;
-    const s = document.createElement("div");
-    s.className = "rain";
-    s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
-    s.style.left = (5 + Math.random()*88) + "%";
-    s.style.top = "0";
-    s.style.fontSize = (22 + Math.random()*22) + "px";
-    s.style.animationDuration = (0.5 + Math.random()*0.5) + "s";
-    panel.appendChild(s);
-    setTimeout(()=>s.remove(), 1200);
-    setTimeout(drop, 60 + Math.random()*90);
-  };
-  drop();
-  drop();
-}
-function giantEmoji(panel, emoji, dur, block){
-  const ov = document.createElement("div");
-  ov.className = "fx-giant" + (block ? " block":"");
-  ov.textContent = emoji;
-  panel.appendChild(ov);
-  setTimeout(()=>ov.remove(), dur);
-}
-
-/* ---------- HUD ---------- */
-function updateHud(){
-  G.players.forEach((pl,p)=>{
-    const s = $("hud-score-"+p), e = $("hud-energy-"+p);
-    if(s) s.textContent = pl.score;
-    if(e) e.textContent = "⚡".repeat(pl.energy) + "▫️".repeat(ENERGY_MAX-pl.energy);
-    const b = $("atk-"+p);
-    if(b) b.disabled = !G.active || pl.energy < 1 || pl.isCPU;
-  });
-}
-function bumpScore(p){
-  const el = $("hud-score-"+p);
-  if(!el) return;
-  el.classList.add("bump"); setTimeout(()=>el.classList.remove("bump"),220);
-}
-let toastTimer = null;
-function toast(msg){
-  const t = $("toast");
-  t.textContent = msg; t.classList.add("show");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>t.classList.remove("show"), 2200);
-}
-
-/* ---------- 結算 ---------- */
-function endGame(){
-  if(!G.active) return;
-  G.active = false;
-  clearInterval(G.timerId);
-  G.players.forEach(pl=>clearTimeout(pl.cpuTimer));
-  $("screen-battle").classList.add("hidden");
-  $("screen-result").classList.remove("hidden");
-  const max = Math.max(...G.players.map(p=>p.score));
-  const winners = G.players.filter(p=>p.score===max);
-  const avatars = ["chef1.png","chef2.png",null];
-  if(winners.length===1){
-    const w = G.players.indexOf(winners[0]);
-    $("result-title").textContent = `🏆 ${winners[0].name} 奪得「廚神」寶座！`;
-    $("result-emoji").innerHTML = winners[0].isCPU ? '<span style="font-size:72px;">🤖🏆</span>'
-      : (avatars[w] ? `<img src="${avatars[w]}" class="chef-img winner" alt="冠軍">🏆` : '<span style="font-size:72px;">🧑‍🍳🏆</span>');
-  }else{
-    $("result-title").textContent = `🤝 和局！${winners.map(w=>w.name).join("、")} 共享「廚神」美譽！`;
-    $("result-emoji").innerHTML = "🤝🏆";
-  }
-  $("stat-grid").innerHTML = G.players.map((pl,p)=>{
-    const bg = ["#FFE4DE","#DDF5F5","#EFE7FC"][p];
-    return `<div class="stat-card" style="background:${bg};"><div class="sc-name">${pl.isCPU?"🤖 ":""}${pl.name}</div><div class="sc-score ${pl.look.colorCls}">${pl.score} 分</div><div class="sc-sub">答對 ${pl.correct} 題 ｜ 答錯 ${pl.wrong} 題</div></div>`;
-  }).join("");
-  let html = "<h3>📝 賽後重溫（各自的錯題）</h3>";
-  G.players.forEach((pl,p)=>{
-    html += `<h3 style="margin-top:10px;">${pl.isCPU?"🤖":(p===0?"🐥":p===1?"🐥":"🐥")} ${pl.name}</h3>`;
-    if(pl.wrongList.length===0){
-      html += `<div class="rv-item">🎉 全對！冇錯題！</div>`;
-    }else{
-      html += pl.wrongList.map(w=>
-        `<div class="rv-item"><b>${fracHTML(w.q)}</b>　<span class="rv-bad">✗ 揀咗：${fracHTML(w.picked)}</span><br><span class="rv-ans">✅ ${fracHTML(w.correct)}</span> <span style="color:#B08A3E;font-weight:700;">${w.tip}</span></div>`
-      ).join("");
-    }
-  });
-  $("review-box").innerHTML = html;
-  confetti();
-}
-function confetti(){
-  const emojis = ["🎉","⭐","🍰","🧁","🍮","🏆","✨"];
-  for(let i=0;i<36;i++){
-    const s = document.createElement("span");
-    s.className="confetti";
-    s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
-    s.style.left = Math.random()*100+"vw";
-    s.style.animationDuration = (2.2+Math.random()*2)+"s";
-    s.style.fontSize = (20+Math.random()*22)+"px";
-    document.body.appendChild(s);
-    setTimeout(()=>s.remove(), 4500);
-  }
-}
-$("btn-again").onclick = ()=>{
-  $("screen-result").classList.add("hidden");
-  $("screen-start").classList.remove("hidden");
-  renderNameInputs();
-};
-
-/* ---------- 鍵盤控制 ---------- */
-document.addEventListener("keydown", e=>{
-  if(!G || $("screen-battle").classList.contains("hidden")) return;
-  const k = e.key.toLowerCase();
-  for(let p=0;p<G.players.length;p++){
-    if(G.players[p].isCPU) continue;
-    const ai = KEYS[p].ans.indexOf(k);
-    if(ai>=0){ e.preventDefault(); doAnswer(p,ai); return; }
-    if(k === KEYS[p].atk){ e.preventDefault(); doAttack(p); return; }
-  }
-});
+/* 4 秒都讀唔到設定 → 當開放，保證上堂唔會卡住 */
+setTimeout(failOpen, 4000);
 </script>
 </body>
 </html>
