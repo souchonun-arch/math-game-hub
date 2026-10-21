@@ -259,6 +259,7 @@
   var gateDirty = false;
   var gateTimer = null;
   var gateSaving = false;   // 防止連續撳掣造成 409
+  var gateAgain = false;    // 儲存期間又有改動 → 完成後自動再跑一次
 
   function gameOpen(g) {
     var o = state.open || {};
@@ -388,7 +389,7 @@
 
   function saveGate() {
     clearTimeout(gateTimer);
-    if (gateSaving) return;          // 上一個儲存未完，等佢自己完成
+    if (gateSaving) { gateAgain = true; return; }   // 唔可以丟：記住要再跑一次
     var msg = '#gate-msg';
     hide(msg);
     var tk = token();
@@ -426,11 +427,17 @@
       .then(function () {
         gateDirty = false;
         gateSaving = false;
+        if (gateAgain) {            // 期間仲有改動 → 即刻再存一次
+          gateAgain = false;
+          setSaveState('saving', '儲存中…（第二次）');
+          return saveGate();
+        }
         setSaveState('ok', '✅ 已儲存 · 1–2 分鐘後生效');
         $('#btn-gate-save').disabled = true;
       })
       .catch(function (e) {
         gateSaving = false;
+        gateAgain = false;
         setSaveState('dirty', '● 儲存失敗');
         $('#btn-gate-save').disabled = false;
         var hint = '';
