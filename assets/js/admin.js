@@ -124,7 +124,7 @@
       var raw = localStorage.getItem(CFG_KEY);
       if (raw) state.cfg = JSON.parse(raw);
     } catch (e) { /* ignore */ }
-    $('#owner').value = state.cfg.owner || '';
+    if (state.cfg.owner) $('#owner').value = state.cfg.owner;
     $('#repo').value = state.cfg.repo || 'math-game-hub';
     $('#branch').value = state.cfg.branch || 'main';
     var tk = sessionStorage.getItem(TOKEN_KEY);
