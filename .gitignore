@@ -1,6 +1,4 @@
-# 由 build.py 自動產生，唔好手改
-data/games.json
-
+# 注意：data/games.json 係網站嘅資料源，必須 commit（唔好加入 ignore）
 .DS_Store
 Thumbs.db
 
