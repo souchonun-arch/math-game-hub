@@ -1,8 +1,8 @@
 {
   "_note": "開放控制。all=全站總開關；sections 可逐分區覆寫；games 可逐款遊戲覆寫。true=開放 / false=關閉。刪走某個 key 即跟隨上一層。message 係關閉時學生見到嘅字。",
-  "all": true,
+  "all": false,
   "sections": {},
   "games": {},
   "message": "呢個遊戲暫時未開放",
-  "updatedAt": "2026-10-21 12:15"
+  "updatedAt": "2026-10-21 17:46"
 }
