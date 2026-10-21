@@ -258,6 +258,7 @@
 
   var gateDirty = false;
   var gateTimer = null;
+  var gateSaving = false;   // 防止連續撳掣造成 409
 
   function gameOpen(g) {
     var o = state.open || {};
@@ -363,8 +364,31 @@
     gateTimer = setTimeout(saveGate, 1800);   // 撳完 1.8 秒自動儲存
   }
 
+  /* ---------- 測試連線（診斷用） ---------- */
+  function testToken() {
+    var msg = '#cfg-msg';
+    var tk = token();
+    var owner = state.cfg.owner || $('#owner').value.trim();
+    var repo = ($('#repo').value || 'math-game-hub').trim();
+    if (!tk) { show(msg, 'err', '請先貼 token'); return; }
+    if (!owner) { show(msg, 'err', '請先填 GitHub 用戶名'); return; }
+    show(msg, 'ok', '測試緊…');
+    api('/repos/' + owner + '/' + repo, { token: tk })
+      .then(function (d) {
+        show(msg, 'ok', '✅ Token 正常！帳號 <b>' + esc(d.owner.login) +
+          '</b>，repo「' + esc(d.name) + '」讀取成功。可以直接撳開關。');
+      })
+      .catch(function (e) {
+        var extra = '';
+        if (e.status === 401) extra = '（token 貼錯咗？試下撳「清除 token」再重新貼）';
+        if (e.status === 404) extra = '（用戶名或 repo 名拼錯？）';
+        show(msg, 'err', '❌ ' + esc(e.message) + extra);
+      });
+  }
+
   function saveGate() {
     clearTimeout(gateTimer);
+    if (gateSaving) return;          // 上一個儲存未完，等佢自己完成
     var msg = '#gate-msg';
     hide(msg);
     var tk = token();
@@ -384,6 +408,7 @@
     var apiPath = '/repos/' + owner + '/' + repo + '/contents/data/open.json';
     setSaveState('saving', '儲存中…');
     $('#btn-gate-save').disabled = true;
+    gateSaving = true;
 
     /* 用 Contents API：只改一個細檔，唔使行 Git Data API */
     return api(apiPath + '?ref=' + encodeURIComponent(branch), { token: tk })
@@ -400,14 +425,25 @@
       })
       .then(function () {
         gateDirty = false;
+        gateSaving = false;
         setSaveState('ok', '✅ 已儲存 · 1–2 分鐘後生效');
         $('#btn-gate-save').disabled = true;
       })
       .catch(function (e) {
+        gateSaving = false;
         setSaveState('dirty', '● 儲存失敗');
         $('#btn-gate-save').disabled = false;
-        show(msg, 'err', '❌ 儲存失敗：' + esc(e.message) +
-          '<br>最常見原因係 token 冇勾 <code>Contents: Read and write</code> 權限，或者過咗期。');
+        var hint = '';
+        if (e.status === 401) {
+          hint = '<br><b>401 = token 本身唔啱</b>。請檢查：' +
+            '<br>· 有冇複製到完整（有冇甩頭尾）<br>· 有冇意外帶入空格或換行<br>' +
+            '· 貼入前撳「清除 token」清走舊嗰個再貼過';
+        } else if (e.status === 409) {
+          hint = '<br><b>409 = 兩次儲存撞車</b>，唔關 token 事。撳多一下「立即儲存」就得。';
+        } else {
+          hint = '<br>請檢查用戶名／repo／分支填得啱唔啱。';
+        }
+        show(msg, 'err', '❌ 儲存失敗：' + esc(e.message) + hint);
       });
   }
 
@@ -691,6 +727,7 @@
       markDirty();
     };
     $('#btn-save-cfg').onclick = saveCfg;
+    $('#btn-test-token').onclick = testToken;
     $('#btn-clear-token').onclick = function () {
       sessionStorage.removeItem(TOKEN_KEY);
       $('#token').value = '';

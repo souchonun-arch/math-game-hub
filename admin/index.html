@@ -172,7 +172,9 @@
     <div class="panel">
       <h2>2. GitHub 連線</h2>
       <p class="hint">
-        只需要填一次（會記喺呢部電腦）。Token 只存喺 sessionStorage —— 關咗分頁就消失。
+        只需要填一次（會記喺呢部電腦）。Token 只存喺 sessionStorage —— 關咗分頁就消失。<br>
+        已有 token？喺終端機執行 <code>/Users/chonunsou/.local/bin/gh auth token | pbcopy</code> 即可複製。<br>
+        貼完撳「測試連線」確認，綠色先至撳開關。
       </p>
       <div class="row">
         <div class="field">
@@ -193,6 +195,7 @@
         <input type="password" id="token" placeholder="github_pat_…" autocomplete="off">
       </div>
       <button class="primary" id="btn-save-cfg">儲存連線設定</button>
+      <button class="secondary" id="btn-test-token" style="margin-left:8px">測試連線</button>
       <button class="secondary" id="btn-clear-token" style="margin-left:8px">清除 token</button>
       <div class="msg" id="cfg-msg"></div>
     </div>
