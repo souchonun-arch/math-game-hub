@@ -465,7 +465,9 @@
         var data = JSON.parse(txt);
         state.games = data;
 
-        var bytes = state.fileBytes;
+        /* 注入本機排行榜外掛，確保後台上傳嘅遊戲一樣有 🏆 掣 */
+        var bytes = injectBoard(state.fileBytes,
+          { id: slug, title: title, section: section });
         var total = bytes.length;
         var needsNet = /(?:src|href)\s*=\s*["']https?:\/\//i.test(state.fileText);
 
@@ -607,6 +609,53 @@
       boot();
     } else {
       show('#pw-msg', 'err', '密碼唔啱，再試一次。');
+    }
+  }
+
+  /* ---------- 注入本機排行榜外掛（同 build.py 完全一致） ---------- */
+  var NEEDLE_BODY = [60, 47, 98, 111, 100, 121, 62]; // "</body>"
+
+  function indexOfBytes(hay, needle, from) {
+    var n = needle.length;
+    outer:
+    for (var i = from; i <= hay.length - n; i++) {
+      for (var j = 0; j < n; j++) {
+        if (hay[i + j] !== needle[j]) continue outer;
+      }
+      return i;
+    }
+    return -1;
+  }
+
+  function injectBoard(u8, meta) {
+    try {
+      // 已經有就唔重複注入
+      var marker = textToBytes('MGH_GAME');
+      if (indexOfBytes(u8, marker, 0) !== -1) return u8;
+
+      var snippet = '\n<script>window.MGH_GAME=' +
+        JSON.stringify(meta).replace(/</g, '\\u003c') + ';<\/script>\n' +
+        '<script src="../../../assets/js/board.js"><\/script>\n';
+      var tail = textToBytes(snippet);
+
+      // 由尾搵最後一個 </body>，唔使掃全部（掃到就用）
+      var pos = -1;
+      for (var i = u8.length - NEEDLE_BODY.length; i >= 0; i--) {
+        var hit = true;
+        for (var j = 0; j < NEEDLE_BODY.length; j++) {
+          if (u8[i + j] !== NEEDLE_BODY[j]) { hit = false; break; }
+        }
+        if (hit) { pos = i; break; }
+      }
+      if (pos === -1) pos = u8.length;
+
+      var out = new Uint8Array(u8.length + tail.length);
+      out.set(u8.subarray(0, pos), 0);
+      out.set(tail, pos);
+      out.set(u8.subarray(pos), pos + tail.length);
+      return out;
+    } catch (e) {
+      return u8; // 注入失敗就照原樣上傳，唔好阻住
     }
   }
 

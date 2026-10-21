@@ -56,10 +56,12 @@
 ├── index.html            首頁（三個入口）
 ├── p3/ p6/ challenge/    三個分區頁（同一套渲染邏輯）
 ├── admin/                管理後台
+├── board/                老師用：全班排行榜（合併／CSV）
 ├── assets/css/hub.css    全站樣式
 ├── assets/js/hub.js      卡片／分類／搜尋／QR
 ├── assets/js/qrcode.js   QR 生成器（自托管，MIT）
 ├── assets/js/admin.js    後台邏輯（GitHub API）
+├── assets/js/board.js    本機排行榜外掛（build 自動注入每款遊戲）
 ├── data/games.json       ★ 自動產生，唔好手改
 ├── data/open.json        ★ 開放控制（全站／分區／逐款遊戲）
 ├── data/slugs.json       ★ 網址代號凍結表（手改）
@@ -164,6 +166,40 @@ python3 scripts/make_covers.py
 改完跑一次 `build.py` 生效。
 
 `addedAt`（首次收錄日）會由上一版 `games.json` 繼承，所以**永遠唔會變**，將來想做「最新上架」排序都靠得住。
+
+## 🏆 本機排行榜（每款遊戲都有）
+
+12 款遊戲全部自動帶一個右下角 🏆 浮動掣（由 `build.py` 注入，**冇改動遊戲內部任何程式**）。
+
+### 學生點用
+1. 玩完 → 撳右下角 🏆
+2. 系統會自動掃描畫面文字搵分數（例如「得分：120」）；搵唔到就自己打
+3. 填名（會記住，下次唔使再打）→ 撳「提交」
+4. 撳「匯出成績」可以複製一段字畀老師
+
+### 老師點睇
+開 **`/board/`**（首頁有「🏆 全班排行榜」入口，三個分區頁右上角亦有掣）：
+- 睇晒呢部電腦所有遊戲嘅排名
+- 貼上學生匯出嘅字 → 合併成全班榜
+- 一鍵下載 CSV（Excel 直接開）
+
+### 技術實現
+| 檔案 | 作用 |
+|---|---|
+| `assets/js/board.js` | 浮動掣 + 面板 + 自動偵測分數 + localStorage |
+| `board/index.html` | 老師合併／匯出頁 |
+| `scripts/build.py` → `inject_board()` | 喺 `play.html` 最尾加兩行 `<script>` |
+| `assets/js/admin.js` → `injectBoard()` | 後台上傳嘅新遊戲一樣會注入（byte 級插入，唔會破壞原檔編碼） |
+
+儲存：`localStorage['mgh_board_v1']`，全站共用一個 key，格式
+`{v:1, games:{<slug>:[{n,s,d,t}]}}`。
+每款遊戲最多留 200 筆，榜只顯示頭 20 名。
+
+### 誠實講清楚限制
+- 呢個係**本機榜**：記錄存喺瀏覽器，同一部電腦先睇得返。
+- 清瀏覽器資料、換機、或者用無痕模式 → 記錄會冇。**記得定期下載 CSV 備份。**
+- 分數靠學生自己確認（自動偵測可能估錯，佢可以改）。呢個係方便，唔係防作弊。
+- **為甚麼唔係雲端**：雲端排行榜需要開通 WorkBuddy 雲服務，而且後端會綁定單一網域（GitHub Pages 唔匹配），所以暫時用本機方案。日後想開雲端，隨時講一聲。
 
 ## 重要原則
 

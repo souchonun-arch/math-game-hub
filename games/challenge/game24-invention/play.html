@@ -357,5 +357,8 @@ document.querySelectorAll('#teacher-settings input,#teacher-settings select').fo
 Promise.all(images.map((img,i)=>new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=IMAGES[i?'monster':'hero'];$('portrait'+i).style.backgroundImage=`url(${img.src})`}))).then(()=>{buildFrameCache();ready=true;refreshSettings();$('start').disabled=false;$('start').textContent='開始對決'}).catch(()=>{$('loading').textContent='角色素材加載失敗，請重新打開整個檔案。';$('loading').className='load-error'});
 requestAnimationFrame(loop);
   </script>
+
+<script>window.MGH_GAME={"id": "game24-invention", "title": "發明學院 · 24點爭霸戰", "section": "challenge"};</script>
+<script src="../../../assets/js/board.js"></script>
 </body>
 </html>

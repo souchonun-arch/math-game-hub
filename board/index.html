@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-base=".." data-page="board">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>全班排行榜 — 數學遊戲總站</title>
+<link rel="stylesheet" href="../assets/css/hub.css">
+<style>
+  .bd-wrap { max-width: 1000px; margin: 0 auto; padding: 22px 18px 56px; }
+  .bd-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px; margin-bottom: 18px; box-shadow: var(--shadow); }
+  .bd-panel h2 { font-size: 17px; margin: 0 0 6px; color: var(--text); }
+  .bd-panel p.bd-note { font-size: 12.5px; color: var(--text-soft); margin: 0 0 12px; }
+  textarea.bd-ta { width: 100%; min-height: 96px; font-size: 13px; padding: 10px; border-radius: 10px;
+    border: 1px solid var(--border); background: #f9fafb; color: var(--text);
+    font-family: ui-monospace, Menlo, monospace; }
+  .bd-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .bd-btn { font-size: 13px; font-weight: 800; padding: 9px 14px; border-radius: 10px; border: none;
+    cursor: pointer; background: var(--accent); color: #fff; }
+  .bd-btn:hover { filter: brightness(1.08); }
+  .bd-btn.ghost { background: var(--accent-soft); color: #1e40af; }
+  .bd-btn.ghost:hover { background: #c7dbfe; }
+  table.bd-tbl { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+  table.bd-tbl th, table.bd-tbl td { padding: 7px 9px; text-align: left; border-bottom: 1px solid var(--border); color: var(--text); }
+  table.bd-tbl th { color: var(--text-soft); font-size: 11.5px; font-weight: 800; letter-spacing: .4px; }
+  table.bd-tbl td.num, table.bd-tbl th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  table.bd-tbl tr:nth-child(even) td { background: #f9fafb; }
+  .bd-medal { font-size: 15px; }
+  .bd-game-title { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    margin-top: 22px; padding-bottom: 6px; border-bottom: 2px solid var(--border); }
+  .bd-game-title h3 { font-size: 15px; margin: 0; color: var(--text); }
+  .bd-game-title span { font-size: 12px; color: var(--text-soft); }
+  .bd-empty { text-align: center; color: var(--text-soft); font-size: 13.5px; padding: 26px 10px; }
+  .bd-msg { font-size: 12.5px; margin-top: 8px; min-height: 18px; }
+  .bd-msg.ok { color: var(--ok); } .bd-msg.err { color: var(--danger); }
+  @media (max-width: 560px) { .bd-wrap { padding: 16px 12px 44px; } .bd-panel { padding: 14px; } }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-icon">🏆</div>
+    <div>
+      <a class="back-home" href="../index.html">← 返總站</a>
+      <h1>全班排行榜</h1>
+      <p>合併唔同電腦嘅成績，睇晒全班排名</p>
+    </div>
+  </div>
+</div>
+
+<div class="bd-wrap">
+
+  <div class="bd-panel">
+    <h2>1. 呢部電腦嘅記錄</h2>
+    <p class="bd-note">學生喺遊戲入面撳 🏆 掣提交成績，就會儲喺呢部電腦。下面係而家所有記錄。</p>
+    <div id="bd-local"></div>
+    <div class="bd-btns">
+      <button class="bd-btn" id="bd-csv" type="button">⬇️ 下載 CSV（全班成績表）</button>
+      <button class="bd-btn ghost" id="bd-refresh" type="button">🔄 重新整理</button>
+      <button class="bd-btn ghost" id="bd-clear" type="button">🗑️ 清空呢部電腦</button>
+    </div>
+    <div class="bd-msg" id="bd-msg"></div>
+  </div>
+
+  <div class="bd-panel">
+    <h2>2. 合併第部電腦嘅成績</h2>
+    <p class="bd-note">叫學生撳「匯出成績」，將段字 send 畀你（或你自己抄），貼落下面再撳合併。可以一次貼幾段。</p>
+    <textarea class="bd-ta" id="bd-paste" placeholder="MGHB1|supermarket-tycoon|小明~85~~1730000000000;小美~92~~1730000001000"></textarea>
+    <div class="bd-btns">
+      <button class="bd-btn" id="bd-merge" type="button">➕ 合併落去</button>
+      <button class="bd-btn ghost" id="bd-demo" type="button">👀 睇下示範</button>
+    </div>
+    <div class="bd-msg" id="bd-msg2"></div>
+  </div>
+
+  <div class="bd-panel">
+    <h2>3. 點樣用（老師版）</h2>
+    <p class="bd-note" style="line-height:1.75">
+      <b>堂上玩法：</b>學生玩完遊戲 → 撳右下角 🏆 → 填名同分數（好多時會自動偵測到）→ 提交。<br>
+      <b>電腦室：</b>同一部電腦嘅記錄會自動累積，學生之間即刻有得鬥。<br>
+      <b>跨電腦：</b>學生撳「匯出成績」→ 複製段字畀你 → 你貼喺上面第 2 格 → 撳合併 → 全班榜就齊人。<br>
+      <b>出成績表：</b>撳「下載 CSV」直接用 Excel 開。<br>
+      ⚠️ 呢個榜係<b>本機</b>嘅，靠瀏覽器儲存。清咗瀏覽器資料或者轉第部電腦就唔見，記得定期下載 CSV 備份。
+    </p>
+  </div>
+
+</div>
+
+<script>window.MGH_NO_PANEL = true;</script>
+<script src="../assets/js/board.js"></script>
+<script>
+(function () {
+  var KEY = 'mgh_board_v1';
+  var gMap = {};   // slug -> 顯示名
+  var extra = [];  // 由貼上合併返嚟嘅記錄
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function loadGames() {
+    var out = {};
+    try {
+      var o = JSON.parse(localStorage.getItem(KEY) || '{}');
+      out = (o && o.games) ? o.games : {};
+    } catch (e) { }
+    return out;
+  }
+  function fmtDate(t) {
+    var d = new Date(t);
+    function p(n) { return (n < 10 ? '0' : '') + n; }
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) +
+      ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+  function rowsHtml(list) {
+    if (!list.length) return '<div class="bd-empty">仲未有記錄</div>';
+    var h = '<table class="bd-tbl"><thead><tr>' +
+      '<th style="width:38px"></th><th>姓名</th><th class="num">分數</th>' +
+      '<th>備註</th><th>時間</th></tr></thead><tbody>';
+    list.forEach(function (r, i) {
+      h += '<tr><td class="bd-medal">' +
+        (i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1)) + '</td>' +
+        '<td>' + esc(r.n) + '</td>' +
+        '<td class="num"><b>' + r.s + '</b></td>' +
+        '<td>' + esc(r.d || '') + '</td>' +
+        '<td>' + fmtDate(r.t) + '</td></tr>';
+    });
+    return h + '</tbody></table>';
+  }
+  function msg(el, text, cls) {
+    el.className = 'bd-msg' + (cls ? ' ' + cls : '');
+    el.textContent = text;
+  }
+
+  function render() {
+    var games = loadGames();
+    var merged = {};   // slug -> rows
+    Object.keys(games).forEach(function (k) {
+      merged[k] = (games[k] || []).map(function (r) {
+        return { n: r.n, s: r.s, d: r.d, t: r.t };
+      });
+    });
+    extra.forEach(function (r) {
+      if (!merged[r.g]) merged[r.g] = [];
+      merged[r.g].push({ n: r.n, s: r.s, d: r.d, t: r.t });
+    });
+
+    var box = document.getElementById('bd-local');
+    var keys = Object.keys(merged).filter(function (k) { return merged[k].length; });
+    if (!keys.length) {
+      box.innerHTML = '<div class="bd-empty">呢部電腦仲未有任何記錄。<br>學生喺遊戲入面撳右下角 🏆 掣就可以記低成績。</div>';
+      return;
+    }
+    var total = 0, html = '';
+    keys.sort();
+    keys.forEach(function (k) {
+      var list = merged[k].slice().sort(function (a, b) { return b.s - a.s || a.t - b.t; });
+      total += list.length;
+      html += '<div class="bd-game-title"><h3>🎮 ' + esc(gMap[k] || k) + '</h3>' +
+        '<span>' + list.length + ' 筆 · 最高 ' + list[0].s + ' 分</span></div>' +
+        rowsHtml(list.slice(0, 30));
+    });
+    box.innerHTML = '<p class="bd-note">共 ' + keys.length + ' 個遊戲、' + total + ' 筆記錄</p>' + html;
+  }
+
+  function toCsv() {
+    var games = loadGames();
+    var lines = ['遊戲,名次,姓名,分數,備註,時間'];
+    Object.keys(games).forEach(function (k) {
+      var list = (games[k] || []).slice().sort(function (a, b) { return b.s - a.s || a.t - b.t; });
+      list.forEach(function (r, i) {
+        lines.push([gMap[k] || k, i + 1,
+          '"' + String(r.n).replace(/"/g, '""') + '"', r.s,
+          '"' + String(r.d || '').replace(/"/g, '""') + '"', fmtDate(r.t)].join(','));
+      });
+    });
+    var blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '遊戲排行榜_' + new Date().toISOString().slice(0, 10) + '.csv';
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1500);
+  }
+
+  document.getElementById('bd-refresh').onclick = function () { render(); msg(document.getElementById('bd-msg'), '已整理', 'ok'); };
+  document.getElementById('bd-csv').onclick = toCsv;
+  document.getElementById('bd-clear').onclick = function () {
+    if (!confirm('確定清空呢部電腦嘅全部遊戲記錄？建議先下載 CSV 備份！')) return;
+    localStorage.removeItem(KEY);
+    render();
+    msg(document.getElementById('bd-msg'), '已清空', 'ok');
+  };
+  document.getElementById('bd-merge').onclick = function () {
+    var txt = document.getElementById('bd-paste').value;
+    var parsed = (window.MGHBoard && window.MGHBoard.parse) ? window.MGHBoard.parse(txt) : [];
+    if (!parsed.length) { msg(document.getElementById('bd-msg2'), '睇唔到有效嘅成績格式，檢查下有冇抄齊。', 'err'); return; }
+    extra = extra.concat(parsed);
+    render();
+    msg(document.getElementById('bd-msg2'), '✅ 合併咗 ' + parsed.length + ' 筆（只顯示，未寫入本機）', 'ok');
+  };
+  document.getElementById('bd-demo').onclick = function () {
+    document.getElementById('bd-paste').value =
+      'MGHB1|supermarket-tycoon|小明~85~第1局~' + Date.now() + ';小美~92~第2局~' + (Date.now() - 1000) +
+      '\nMGHB1|percent-spirit-battle|阿強~70~~' + Date.now();
+    msg(document.getElementById('bd-msg2'), '示範字已填，撳「合併落去」睇效果。', '');
+  };
+
+  // 讀遊戲顯示名（用嚟將 slug 變做中文名）
+  fetch('../data/games.json').then(function (r) { return r.json(); }).then(function (d) {
+    (d.games || []).forEach(function (g) { gMap[g.id] = g.title; });
+    render();
+  }).catch(function () { render(); });
+
+  render();
+})();
+</script>
+</body>
+</html>

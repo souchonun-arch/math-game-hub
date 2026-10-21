@@ -55,6 +55,28 @@ def die(msg: str) -> "NoReturn":  # type: ignore[valid-type]
     sys.exit(1)
 
 
+def inject_board(text: bytes, g: dict) -> bytes:
+    """
+    喺遊戲本體最尾注入「本機排行榜」外掛。
+
+    只係加兩行 <script>，完全唔郁遊戲內部程式；萬一外掛出事都唔會拖累遊戲。
+    play.html 位於 games/<分區>/<slug>/，所以 assets 要上三層。
+    """
+    if b'MGH_GAME' in text:
+        return text  # 已經注入過
+    cfg = json.dumps(
+        {"id": g["id"], "title": g["title"], "section": g["section"]},
+        ensure_ascii=False).replace('<', '\\u003c')
+    snippet = (
+        '\n<script>window.MGH_GAME=' + cfg + ';</script>\n'
+        '<script src="../../../assets/js/board.js"></script>\n'
+    ).encode('utf-8')
+    pos = text.lower().rfind(b'</body>')
+    if pos != -1:
+        return text[:pos] + snippet + text[pos:]
+    return text + snippet
+
+
 def render_gate(section: str, slug: str, title: str) -> str:
     """產生 1KB 守門頁：未開放會擋住，開放咗先放行去 play.html。"""
     if not GATE_TEMPLATE.exists():
@@ -440,6 +462,7 @@ def main() -> int:
         except Exception as e:
             die(f"讀取失敗 {src}：{e}")
         # 遊戲本體改名 play.html，index.html 讓位畀「守門頁」
+        text = inject_board(text, g)
         (dest_dir / "play.html").write_bytes(text)
         written += 1
         (dest_dir / "index.html").write_text(

@@ -565,3 +565,16 @@ a { color: inherit; text-decoration: none; }
   .lock-banner .lock-ico { font-size: 22px; }
   .lock-banner b { font-size: 14px; }
 }
+
+/* ---------- 首頁快速入口 ---------- */
+.quick-links { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; }
+.quick-link {
+  display: flex; align-items: center; gap: 11px; text-decoration: none;
+  background: #141c33; border: 1px solid #33415c; border-radius: 14px;
+  padding: 13px 18px; transition: transform .2s, border-color .2s;
+}
+.quick-link:hover { transform: translateY(-2px); border-color: #f59e0b; }
+.ql-ico { font-size: 24px; line-height: 1; }
+.ql-txt { display: flex; flex-direction: column; gap: 2px; }
+.ql-txt b { font-size: 14.5px; color: #eaf1ff; }
+.ql-txt i { font-style: normal; font-size: 11.5px; color: #8fa3c8; }
