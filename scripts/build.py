@@ -244,6 +244,11 @@ def scan_games(cfg: dict, slugs: dict, overrides: dict) -> tuple[list[dict], lis
     return games, excluded
 
 
+def _mtime_date(hp: Path) -> str:
+    """來源檔嘅最後修改日（GMT+8），格式 YYYY-MM-DD。"""
+    return datetime.fromtimestamp(hp.stat().st_mtime, TZ).strftime("%Y-%m-%d")
+
+
 def _build_entry(hp: Path, rel: str, raw: bytes, digest: str, section: str,
                  slugs: dict, overrides: dict, cfg: dict, is_new: bool) -> dict:
     slug = slugs.get(rel) or make_slug(rel, rel)
@@ -277,7 +282,15 @@ def _build_entry(hp: Path, rel: str, raw: bytes, digest: str, section: str,
         "file": "index.html",
         "deps": [d["file"] for d in deps],
         "unresolvedRefs": unresolved,
-        "isNew": is_new,
+        # 「未登記 slug」旗標（內部用，唔會寫入 games.json）
+        "unregistered": is_new,
+        # 來源檔最後修改日（澳門時區），用嚟判斷「最新遊戲」
+        "updatedAt": _mtime_date(hp),
+        # 首次收錄日：優先用 overrides.json 手寫嘅 seed，否則暫時用來源 mtime，
+        # main() 之後會再嘗試由上一版 games.json 繼承真正嘅首次收錄日
+        "addedAt": ov.get("addedAt") or _mtime_date(hp),
+        # 手動覆寫：overrides.json 寫 "new": true / false 可以強制著火或熄火
+        "newOverride": ov.get("new") if isinstance(ov.get("new"), bool) else None,
     }
 
 
@@ -310,6 +323,10 @@ def main() -> int:
     prev = load_json(GAMES_JSON, None)
     prev_by_id = {g["id"]: g for g in prev.get("games", [])} if prev else {}
 
+    # 幾多日內改過算「最新」（著火 + NEW）。可以喺 scripts/sources.json 改 newDays
+    new_days = int(cfg.get("newDays", 30))
+    today = datetime.now(TZ)
+
     for g in games:
         old = prev_by_id.get(g["id"])
         if old is None:
@@ -318,6 +335,22 @@ def main() -> int:
             g["status"] = "modified"
         else:
             g["status"] = "unchanged"
+
+        # addedAt：上一版有就繼承（保持首次收錄日永遠唔變），否則用手寫 seed 或來源 mtime
+        if old and old.get("addedAt"):
+            g["addedAt"] = old["addedAt"]
+
+        # isNew（火焰 + NEW 角標）：手動覆寫優先，否則用 newDays 自動判斷
+        if g.get("newOverride") is True:
+            g["isNew"] = True
+        elif g.get("newOverride") is False:
+            g["isNew"] = False
+        else:
+            try:
+                d = datetime.strptime(g["updatedAt"], "%Y-%m-%d").replace(tzinfo=TZ)
+                g["isNew"] = (today - d).days <= new_days
+            except Exception:
+                g["isNew"] = False
 
     missing = [gid for gid in prev_by_id if gid not in {g["id"] for g in games}]
 
@@ -335,8 +368,10 @@ def main() -> int:
                 extra.append(f"依附 {g['depCount']} 檔")
             if g["needsNetwork"]:
                 extra.append("需外網")
-            if g["isNew"]:
+            if g["unregistered"]:
                 extra.append("⚠️  未登記 slug")
+            if g["isNew"]:
+                extra.append(f"🔥 NEW（{g['updatedAt']} 改過）")
             tail = ("  [" + "、".join(extra) + "]") if extra else ""
             print(f"   {flag}  {g['title']}  ({g['sizeText']}){tail}")
             print(f"          → {g['entry']}")
@@ -354,7 +389,7 @@ def main() -> int:
         for gid in missing:
             print(f"   ❓ {gid}")
 
-    new_games = [g for g in games if g["isNew"]]
+    new_games = [g for g in games if g["unregistered"]]
     if new_games:
         print("\n" + "-" * 66)
         print("🎯 發現新遊戲，等你決定 slug：")
@@ -381,7 +416,7 @@ def main() -> int:
     target_root = ensure_inside_repo(GAMES_DIR, "遊戲輸出目錄")
     written = 0
     for g in games:
-        if g["isNew"]:
+        if g["unregistered"]:
             print(f"   ⏭️  跳過未登記 slug 嘅新遊戲：{g['source']}")
             continue
         dest_dir = ensure_inside_repo(target_root / g["section"] / g["id"], "遊戲目錄")
@@ -404,12 +439,14 @@ def main() -> int:
     # ---- 寫 games.json ----
     out = {
         "updated": datetime.now(TZ).strftime("%Y-%m-%d %H:%M"),
-        "count": len([g for g in games if not g["isNew"]]),
-        "totalBytes": sum(g["totalBytes"] for g in games if not g["isNew"]),
+        "count": len([g for g in games if not g["unregistered"]]),
+        "totalBytes": sum(g["totalBytes"] for g in games if not g["unregistered"]),
+        "newDays": new_days,
         "games": [
-            {k: v for k, v in g.items() if k not in ("sourceAbs", "isNew", "status")}
+            {k: v for k, v in g.items()
+             if k not in ("sourceAbs", "status", "unregistered", "newOverride")}
             for g in sorted(games, key=lambda x: (x["section"], x["title"]))
-            if not g["isNew"]
+            if not g["unregistered"]
         ],
     }
     ensure_inside_repo(GAMES_JSON, "games.json").write_text(

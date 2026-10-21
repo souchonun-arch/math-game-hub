@@ -185,9 +185,17 @@
     var emoji = TOPIC_EMOJI[g.topic] || '🎮';
     var grad = GRADIENTS[idx % GRADIENTS.length];
     var net = g.needsNetwork ? '<span class="badge net">需外網</span>' : '';
+    var flame = g.isNew
+      ? '<span class="new-flame" title="最近更新"><span class="flame-ico">🔥</span>NEW</span>'
+      : '';
     return '' +
-      '<article class="card" data-id="' + esc(g.id) + '">' +
-        '<div class="card-visual" style="--card-grad:' + grad + '">' + emoji + '</div>' +
+      '<article class="card' + (g.isNew ? ' is-new' : '') + '" data-id="' + esc(g.id) + '">' +
+        '<div class="card-visual" style="--card-grad:' + grad + '">' +
+          '<span class="card-emoji">' + emoji + '</span>' +
+          '<img class="card-cover" src="' + esc(absUrl('assets/img/' + g.id + '.jpg')) +
+            '" alt="" loading="lazy" decoding="async" onerror="this.remove()">' +
+          flame +
+        '</div>' +
         '<div class="card-body">' +
           '<h3 class="card-title">' + esc(g.title) + '</h3>' +
           '<span class="card-topic">' + esc(g.topic) + '</span>' +
@@ -231,14 +239,24 @@
       var items = state.games.filter(function (g) { return g.section === sec.id; });
       var total = items.reduce(function (a, g) { return a + g.totalBytes; }, 0);
       var mb = (total / (1024 * 1024)).toFixed(1);
+      var newCount = items.filter(function (g) { return g.isNew; }).length;
+      var badge = newCount
+        ? '<span class="section-new"><span class="flame-ico">🔥</span>' + newCount + ' 款新</span>'
+        : '';
       return '' +
         '<a class="section-card" href="' + esc(absUrl(sec.id + '/')) + '">' +
-          '<div class="section-top" style="background:' + sec.gradient + '">' + sec.icon + '</div>' +
+          '<div class="section-top" style="background:' + sec.gradient + '">' +
+            '<span class="section-emoji">' + sec.icon + '</span>' +
+            '<img class="section-cover" src="' + esc(absUrl('assets/img/sec-' + sec.id + '.jpg')) +
+              '" alt="" loading="lazy" decoding="async" onerror="this.remove()">' +
+            badge +
+          '</div>' +
           '<div class="section-info">' +
             '<h2>' + esc(sec.title) + '</h2>' +
             '<p>' + esc(sec.desc) + '</p>' +
             '<div class="section-foot">' +
-              '<span class="section-count">' + items.length + ' 款 · ' + mb + ' MB</span>' +
+              '<span class="section-count">' + items.length + ' 款 · ' + mb + ' MB' +
+                (newCount ? ' · <b style="color:#e11d48">' + newCount + ' 新</b>' : '') + '</span>' +
               '<span class="section-go" style="background:' + sec.color + '">入去玩 ▶</span>' +
             '</div>' +
           '</div>' +

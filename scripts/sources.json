@@ -7,6 +7,8 @@
     { "dir": "六數學思維", "section": "challenge", "recursive": true }
   ],
   "minBytes": 20480,
+  "newDays": 30,
+  "_newDaysReason": "來源檔喺幾多日內改過就自動標 🔥 NEW。想收窄（例如得返最近幾款著火）就改細呢個數字，例如 7 或 14。另外可以喺 data/overrides.json 為個別遊戲寫 \"new\": true 強制著火，或 \"new\": false 強制熄火。",
   "excludeSubstrings": ["原始備份"],
   "excludeRelPaths": [
     "三數學/遊戲/06四則運算次序/06四則運算次序.html"

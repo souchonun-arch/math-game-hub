@@ -65,9 +65,57 @@
 ├── data/overrides.json   ★ 顯示名／課題／關鍵字（手改）
 ├── data/topics.json      課題分類次序（手改）
 ├── data/sections.json    分區設定（手改）
+├── assets/img/*.jpg      封面圖（已壓縮，每張約 90KB）
+├── assets/img/src/       封面圖原檔（2MB／張，唔上傳，只供重新壓縮）
 ├── games/<分區>/<slug>/  遊戲本體 + 依附檔
-└── scripts/build.py      掃描桌面 → 產生清單 → 複製檔案
+├── scripts/build.py      掃描桌面 → 產生清單 → 複製檔案
+└── scripts/make_covers.py 封面圖裁水印 + 壓縮
 ```
+
+---
+
+## 封面圖與「🔥 NEW」火焰標籤
+
+### 封面圖點運作
+
+每張卡片嘅封面圖檔名**就係遊戲 slug**：
+
+```
+assets/img/<slug>.jpg        例如 assets/img/supermarket-tycoon.jpg
+assets/img/sec-<分區>.jpg    例如 assets/img/sec-p3.jpg
+```
+
+前端直接用 `g.id` 拼路徑，**所以加新遊戲唔使改任何資料檔**。
+冇封面圖嘅遊戲（例如你透過後台上傳嘅）會自動退回「漸層 + 課題 emoji」，唔會爛版。
+
+想換某一張封面：把新圖放入 `assets/img/src/<slug>.png`，再跑
+```bash
+python3 scripts/make_covers.py
+```
+（腳本會裁走右下角 AI 水印、縮到 800px 闊、存成 JPEG）
+
+### 「最新」點判斷
+
+`build.py` 會讀**來源檔嘅修改日期**，寫入 `games.json` 嘅 `updatedAt`。
+`scripts/sources.json` 有個 `newDays`（預設 30）：來源檔喺 30 日內改過，卡片就自動著火 + 掛 NEW 角標，過期自動熄。
+
+想收窄到只標最近幾款，改 `newDays` 一個數字就得：
+```json
+"newDays": 7
+```
+（7 日 → 得最近一星期改過嘅遊戲著火；想全部熄就設 0）
+
+**個別遊戲想強制著火或熄火**，喺 `data/overrides.json` 該 slug 下面加：
+```json
+"supermarket-tycoon": {
+  "title": "超市大亨爭霸戰 · 折扣與賺賠",
+  "new": true
+}
+```
+`true` = 永遠著火，`false` = 永遠唔著火，唔寫 = 跟 `newDays` 自動判斷。
+改完跑一次 `build.py` 生效。
+
+`addedAt`（首次收錄日）會由上一版 `games.json` 繼承，所以**永遠唔會變**，將來想做「最新上架」排序都靠得住。
 
 ## 重要原則
 

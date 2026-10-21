@@ -1,7 +1,8 @@
 {
-  "updated": "2026-10-21 09:04",
+  "updated": "2026-10-21 09:52",
   "count": 12,
   "totalBytes": 48866474,
+  "newDays": 30,
   "games": [
     {
       "id": "decimal-fraction-mental",
@@ -28,7 +29,10 @@
       "entry": "games/challenge/decimal-fraction-mental/",
       "file": "index.html",
       "deps": [],
-      "unresolvedRefs": []
+      "unresolvedRefs": [],
+      "updatedAt": "2026-10-11",
+      "addedAt": "2026-10-11",
+      "isNew": true
     },
     {
       "id": "game24-invention",
@@ -55,7 +59,10 @@
       "entry": "games/challenge/game24-invention/",
       "file": "index.html",
       "deps": [],
-      "unresolvedRefs": []
+      "unresolvedRefs": [],
+      "updatedAt": "2026-10-16",
+      "addedAt": "2026-10-16",
+      "isNew": true
     },
     {
       "id": "multiplication-race",
@@ -81,7 +88,10 @@
       "entry": "games/p3/multiplication-race/",
       "file": "index.html",
       "deps": [],
-      "unresolvedRefs": []
+      "unresolvedRefs": [],
+      "updatedAt": "2026-09-19",
+      "addedAt": "2026-09-19",
+      "isNew": false
     },
     {
       "id": "monopoly-mop",
@@ -107,7 +117,10 @@
       "entry": "games/p3/monopoly-mop/",
       "file": "index.html",
       "deps": [],
-      "unresolvedRefs": []
+      "unresolvedRefs": [],
+      "updatedAt": "2026-10-12",
+      "addedAt": "2026-10-12",
+      "isNew": true
     },
     {
       "id": "order-of-operations",
@@ -136,7 +149,10 @@
         "chef1.png",
         "chef2.png"
       ],
-      "unresolvedRefs": []
+      "unresolvedRefs": [],
+      "updatedAt": "2026-09-29",
+      "addedAt": "2026-09-29",
+      "isNew": true
     },
     {
       "id": "unit-conversion",
@@ -163,7 +179,10 @@
       "entry": "games/p3/unit-conversion/",
       "file": "index.html",
       "deps": [],
-      "unresolvedRefs": []
+      "unresolvedRefs": [],
+      "updatedAt": "2026-10-13",
+      "addedAt": "2026-10-13",
+      "isNew": true
     },
     {
       "id": "vertical-multiplication-battle",
@@ -189,7 +208,10 @@
       "entry": "games/p3/vertical-multiplication-battle/",
       "file": "index.html",
       "deps": [],
-      "unresolvedRefs": []
+      "unresolvedRefs": [],
+      "updatedAt": "2026-09-20",
+      "addedAt": "2026-09-20",
+      "isNew": false
     },
     {
       "id": "mm-dm-measure",
@@ -216,7 +238,10 @@
       "entry": "games/p3/mm-dm-measure/",
       "file": "index.html",
       "deps": [],
-      "unresolvedRefs": []
+      "unresolvedRefs": [],
+      "updatedAt": "2026-10-11",
+      "addedAt": "2026-10-11",
+      "isNew": true
     },
     {
       "id": "decimal-fraction-percent",
@@ -247,7 +272,10 @@
         "chef1.png",
         "chef2.png"
       ],
-      "unresolvedRefs": []
+      "unresolvedRefs": [],
+      "updatedAt": "2026-09-29",
+      "addedAt": "2026-09-29",
+      "isNew": true
     },
     {
       "id": "simple-interest-monster",
@@ -274,7 +302,10 @@
       "entry": "games/p6/simple-interest-monster/",
       "file": "index.html",
       "deps": [],
-      "unresolvedRefs": []
+      "unresolvedRefs": [],
+      "updatedAt": "2026-10-20",
+      "addedAt": "2026-10-20",
+      "isNew": true
     },
     {
       "id": "percent-spirit-battle",
@@ -300,7 +331,10 @@
       "entry": "games/p6/percent-spirit-battle/",
       "file": "index.html",
       "deps": [],
-      "unresolvedRefs": []
+      "unresolvedRefs": [],
+      "updatedAt": "2026-10-20",
+      "addedAt": "2026-10-20",
+      "isNew": true
     },
     {
       "id": "supermarket-tycoon",
@@ -328,7 +362,10 @@
       "entry": "games/p6/supermarket-tycoon/",
       "file": "index.html",
       "deps": [],
-      "unresolvedRefs": []
+      "unresolvedRefs": [],
+      "updatedAt": "2026-10-20",
+      "addedAt": "2026-10-20",
+      "isNew": true
     }
   ]
 }
