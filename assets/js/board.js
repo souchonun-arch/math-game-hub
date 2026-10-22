@@ -199,14 +199,13 @@
     panel.appendChild(listEl);
 
     var foot = el('div', 'mgh-foot');
-    var bExport = el('button', 'mgh-btn ghost', '匯出成績');
-    bExport.type = 'button';
-    bExport.onclick = exportData;
-    var bClear = el('button', 'mgh-btn ghost', '清空呢個榜');
-    bClear.type = 'button';
-    bClear.onclick = clearBoard;
-    foot.appendChild(bExport);
-    foot.appendChild(bClear);
+    /* 學生版唔俾匯出／清空 —— 呢啲係老師功能，喺 /board/（有密碼閘）做 */
+    var bHelp = el('button', 'mgh-btn ghost', '交咗上課室就自動記錄');
+    bHelp.type = 'button';
+    bHelp.disabled = true;
+    bHelp.style.opacity = '.7';
+    bHelp.style.cursor = 'default';
+    foot.appendChild(bHelp);
     panel.appendChild(foot);
 
     root.appendChild(panel);
@@ -238,13 +237,34 @@
     if (isNaN(sc) || sc < 0) { toast('分數要係數字喎！'); scoreEl.focus(); return; }
     try { localStorage.setItem(KEY_NAME, nm); } catch (e) { }
     var list = rows();
-    list.push({ n: nm, s: sc, d: clean(noteEl.value), t: Date.now(), g: GAME_ID });
+    /* 答題明細（analytics.js 採集，冇就唔帶） */
+    var detail = null, aCorrect = null, aWrong = null, aTime = null;
+    try {
+      if (window.MGHAnalytics && window.MGHAnalytics.snapshot) {
+        var snap = window.MGHAnalytics.snapshot();
+        detail = snap.detail || [];
+        aCorrect = snap.correct; aWrong = snap.wrong; aTime = snap.timeMs;
+      }
+    } catch (e) { /* 採集失敗唔應該阻礙提交 */ }
+    var rec = {
+      n: nm, s: sc, d: clean(noteEl.value), t: Date.now(), g: GAME_ID,
+      c: aCorrect, w: aWrong, ms: aTime, det: detail
+    };
+    list.push(rec);
     list.sort(function (a, b) { return b.s - a.s || a.t - b.t; });
     saveRows(list);
     noteEl.value = '';
     scoreEl.value = '';
     render();
-    toast('✅ 記低咗！' + nm + ' ' + sc + ' 分');
+    /* 雲端上載（老師設定咗 Google 試算表先會有效，否則靜默） */
+    var cloudMsg = '';
+    try {
+      if (window.MGHCloud && window.MGHCloud.enabled && window.MGHAnalytics) {
+        var okc = window.MGHCloud.submit(window.MGHAnalytics.snapshot());
+        cloudMsg = okc ? '，已同步到老師嘅雲端記錄' : '';
+      }
+    } catch (e) { /* 雲端唔好就唔好，唔影響 */ }
+    toast('✅ 記低咗！' + nm + ' ' + sc + ' 分' + cloudMsg);
   }
 
   function render() {

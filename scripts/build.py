@@ -40,6 +40,24 @@ SECTIONS_FILE = DATA_DIR / "sections.json"
 GAMES_JSON = DATA_DIR / "games.json"
 SUGGESTED_FILE = DATA_DIR / "overrides.suggested.json"
 GATE_TEMPLATE = SCRIPTS_DIR / "gate_template.html"
+CLOUD_FILE = DATA_DIR / "cloud.json"
+
+
+def _cloud_endpoint() -> str:
+    """讀取雲端上載端點（Google Apps Script Web App URL）。
+
+    老師喺 data/cloud.json 填 {"endpoint": "https://script.google.com/..."}。
+    未設定就回空字串 —— 學生端會完全靜默（只存本機）。
+    """
+    try:
+        raw = CLOUD_FILE.read_text(encoding="utf-8")
+        obj = json.loads(raw)
+        return str(obj.get("endpoint") or "").strip()
+    except Exception:
+        return ""
+
+
+CLOUD_ENDPOINT = _cloud_endpoint()
 
 TZ = timezone(timedelta(hours=8))
 
@@ -62,13 +80,27 @@ def inject_board(text: bytes, g: dict) -> bytes:
     只係加兩行 <script>，完全唔郁遊戲內部程式；萬一外掛出事都唔會拖累遊戲。
     play.html 位於 games/<分區>/<slug>/，所以 assets 要上三層。
     """
+    # 已經注入過 board.js 就要補返 analytics.js（新增外掛時唔使重洗全部遊戲）
+    if b'cloud.js' in text:
+        return text  # 三個外掛都齊
     if b'MGH_GAME' in text:
-        return text  # 已經注入過
+        # 補插 analytics.js / cloud.js（放在 board.js 之前）
+        marker = b'<script src="../../../assets/js/board.js"></script>'
+        if marker in text:
+            add = b''
+            if b'analytics.js' not in text:
+                add += b'<script src="../../../assets/js/analytics.js"></script>\n'
+            add += b'<script src="../../../assets/js/cloud.js"></script>\n'
+            return text.replace(marker, add + marker, 1)
+        return text
     cfg = json.dumps(
-        {"id": g["id"], "title": g["title"], "section": g["section"]},
+        {"id": g["id"], "title": g["title"], "section": g["section"],
+         "cloudEndpoint": CLOUD_ENDPOINT},
         ensure_ascii=False).replace('<', '\\u003c')
     snippet = (
         '\n<script>window.MGH_GAME=' + cfg + ';</script>\n'
+        '<script src="../../../assets/js/analytics.js"></script>\n'
+        '<script src="../../../assets/js/cloud.js"></script>\n'
         '<script src="../../../assets/js/board.js"></script>\n'
     ).encode('utf-8')
     pos = text.lower().rfind(b'</body>')

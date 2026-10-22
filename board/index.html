@@ -34,6 +34,13 @@
   .bd-empty { text-align: center; color: var(--text-soft); font-size: 13.5px; padding: 26px 10px; }
   .bd-msg { font-size: 12.5px; margin-top: 8px; min-height: 18px; }
   .bd-msg.ok { color: var(--ok); } .bd-msg.err { color: var(--danger); }
+  .bd-det summary { cursor: pointer; font-size: 12px; color: #b45309; font-weight: 700; white-space: nowrap; }
+  .bd-det summary:hover { text-decoration: underline; }
+  .bd-det ul { margin: 6px 0 2px; padding-left: 16px; }
+  .bd-det li { margin-bottom: 8px; font-size: 12px; line-height: 1.5; }
+  .bd-det .bad { color: var(--danger); font-weight: 700; }
+  .bd-det .good { color: var(--ok); font-weight: 700; }
+  .good { color: var(--ok); } .bad { color: var(--danger); }
   @media (max-width: 560px) { .bd-wrap { padding: 16px 12px 44px; } .bd-panel { padding: 14px; } }
 </style>
 </head>
@@ -50,10 +57,36 @@
   </div>
 </div>
 
-<div class="bd-wrap">
+<div id="bd-lock" class="bd-panel" style="text-align:center;padding:38px 20px">
+  <div style="font-size:46px;line-height:1">🔒</div>
+  <h2 style="margin:12px 0 6px">老師專用區</h2>
+  <p class="bd-note" style="margin-bottom:16px">呢一版專門畀老師睇全班成績同答題明細，唔係俾學生用。<br>請輸入密碼。</p>
+  <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+    <input type="password" id="bd-pw" placeholder="密碼" autocomplete="off"
+      style="font-size:14px;padding:9px 12px;border-radius:10px;border:1px solid var(--border);width:180px">
+    <button class="bd-btn" id="bd-unlock" type="button">開啟</button>
+  </div>
+  <div class="bd-msg" id="bd-lock-msg" style="text-align:center"></div>
+</div>
+
+<div class="bd-wrap" id="bd-real" hidden>
+
+
+  <div class="bd-panel" id="bd-cloud-panel">
+    <h2>1. 雲端全班記錄（Google 試算表）</h2>
+    <p class="bd-note" id="bd-cloud-note">
+      學生交咗成績就會自動上載到雲端，老師喺呢度就睇到全校數據（答對幾多、錯咗咩、用了幾耐）。<br>
+      仲未設定？睇 <b>第 4 格「點樣開通雲端」</b>，設定一次就永久自動。
+    </p>
+    <div id="bd-cloud-box"></div>
+    <div class="bd-btns">
+      <button class="bd-btn" id="bd-cloud-refresh" type="button">🔄 重新整理雲端記錄</button>
+    </div>
+    <div class="bd-msg" id="bd-cloud-msg"></div>
+  </div>
 
   <div class="bd-panel">
-    <h2>1. 呢部電腦嘅記錄</h2>
+    <h2>2. 呢部電腦嘅記錄</h2>
     <p class="bd-note">學生喺遊戲入面撳 🏆 掣提交成績，就會儲喺呢部電腦。下面係而家所有記錄。</p>
     <div id="bd-local"></div>
     <div class="bd-btns">
@@ -65,7 +98,7 @@
   </div>
 
   <div class="bd-panel">
-    <h2>2. 合併第部電腦嘅成績</h2>
+    <h2>3. 合併第部電腦嘅成績</h2>
     <p class="bd-note">叫學生撳「匯出成績」，將段字 send 畀你（或你自己抄），貼落下面再撳合併。可以一次貼幾段。</p>
     <textarea class="bd-ta" id="bd-paste" placeholder="MGHB1|supermarket-tycoon|小明~85~~1730000000000;小美~92~~1730000001000"></textarea>
     <div class="bd-btns">
@@ -76,7 +109,22 @@
   </div>
 
   <div class="bd-panel">
-    <h2>3. 點樣用（老師版）</h2>
+    <h2>5. 點樣開通雲端（一次性設定）</h2>
+    <p class="bd-note" style="line-height:1.8">
+      <b>要做咩：</b>用 Google 試算表收成績。免費、學生提交即自動上載、老師喺任何電腦都睇到。<br><br>
+      <b>步驟：</b><br>
+      1. 開 <code>https://script.google.com</code> → 「新增專案」<br>
+      2. 貼上 <code>scripts/google-apps-script.gs</code> 嘅內容 → 儲存<br>
+      3. 撳「部署」→「新增部署」→「網頁應用程式」<br>
+      4. 執行身分：<b>自己</b>；誰可以存取：<b>任何人</b>（學生要先入到去）<br>
+      5. 部署完拎到一條 <code>https://script.google.com/macros/s/xxxx/exec</code> 網址<br>
+      6. 貼去 <code>data/cloud.json</code> 嘅 <code>"endpoint"</code> 度，再同我講一聲<br><br>
+      <b>之後：</b>學生每交一次成績就自動多一行，呢個頁面撳「重新整理」就見到全部。
+    </p>
+  </div>
+
+  <div class="bd-panel">
+    <h2>6. 點樣用（老師版）</h2>
     <p class="bd-note" style="line-height:1.75">
       <b>堂上玩法：</b>學生玩完遊戲 → 撳右下角 🏆 → 填名同分數（好多時會自動偵測到）→ 提交。<br>
       <b>電腦室：</b>同一部電腦嘅記錄會自動累積，學生之間即刻有得鬥。<br>
@@ -88,6 +136,39 @@
 
 </div>
 
+<script>
+// 密碼閘：只有老師可以睇
+(function () {
+  var KEY = 'mgh_teacher_unlocked';
+  var real = document.getElementById('bd-real');
+  var lock = document.getElementById('bd-lock');
+  function open_() {
+    lock.hidden = true;
+    real.hidden = false;
+  }
+  if (sessionStorage.getItem(KEY) === '1') open_();
+  document.getElementById('bd-unlock').addEventListener('click', function () {
+    var v = document.getElementById('bd-pw').value;
+    if (v === 'mathgames2026') {
+      sessionStorage.setItem(KEY, '1');
+      open_();
+      // 解鎖後載入雲端記錄
+      setTimeout(function () {
+        var f = document.getElementById('bd-cloud-refresh');
+        if (f) f.click();
+      }, 120);
+    } else {
+      var m = document.getElementById('bd-lock-msg');
+      m.className = 'bd-msg err';
+      m.textContent = '密碼唔啱';
+      document.getElementById('bd-pw').select();
+    }
+  });
+  document.getElementById('bd-pw').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') document.getElementById('bd-unlock').click();
+  });
+})();
+</script>
 <script>window.MGH_NO_PANEL = true;</script>
 <script src="../assets/js/board.js"></script>
 <script>
@@ -115,17 +196,33 @@
     return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) +
       ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
   }
+  function detailCell(r) {
+    if (!r.det || !r.det.length) return '<span style="color:var(--text-soft)">—</span>';
+    var ws = r.det.filter(function (d) { return !d.ok; });
+    if (!ws.length) return '<span class="good">全對 ✓</span>';
+    return '<details class="bd-det"><summary>睇 ' + ws.length + ' 條錯題</summary><ul>' +
+      ws.map(function (d) {
+        return '<li><b>' + esc(d.q || '?') + '</b><br>' +
+          '<span class="bad">學生答：' + esc(d.user || '—') + '</span> ｜ ' +
+          '<span class="good">正確：' + esc(d.ans || '—') + '</span></li>';
+      }).join('') + '</ul></details>';
+  }
   function rowsHtml(list) {
     if (!list.length) return '<div class="bd-empty">仲未有記錄</div>';
     var h = '<table class="bd-tbl"><thead><tr>' +
       '<th style="width:38px"></th><th>姓名</th><th class="num">分數</th>' +
-      '<th>備註</th><th>時間</th></tr></thead><tbody>';
+      '<th class="num">對/錯</th><th class="num">用時</th>' +
+      '<th>錯題明細</th><th>時間</th></tr></thead><tbody>';
     list.forEach(function (r, i) {
+      var acc = (r.c != null && r.w != null) ? (r.c + '/' + r.w) : '—';
+      var secs = (r.ms != null) ? Math.round(r.ms / 1000) + 's' : '—';
       h += '<tr><td class="bd-medal">' +
         (i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1)) + '</td>' +
         '<td>' + esc(r.n) + '</td>' +
         '<td class="num"><b>' + r.s + '</b></td>' +
-        '<td>' + esc(r.d || '') + '</td>' +
+        '<td class="num">' + acc + '</td>' +
+        '<td class="num">' + secs + '</td>' +
+        '<td>' + detailCell(r) + '</td>' +
         '<td>' + fmtDate(r.t) + '</td></tr>';
     });
     return h + '</tbody></table>';
@@ -140,7 +237,7 @@
     var merged = {};   // slug -> rows
     Object.keys(games).forEach(function (k) {
       merged[k] = (games[k] || []).map(function (r) {
-        return { n: r.n, s: r.s, d: r.d, t: r.t };
+        return { n: r.n, s: r.s, d: r.d, t: r.t, c: r.c, w: r.w, ms: r.ms, det: r.det };
       });
     });
     extra.forEach(function (r) {
@@ -168,12 +265,20 @@
 
   function toCsv() {
     var games = loadGames();
-    var lines = ['遊戲,名次,姓名,分數,備註,時間'];
+    var lines = ['遊戲,名次,姓名,分數,答對,答錯,準確率%,用時秒,錯題明細,備註,時間'];
     Object.keys(games).forEach(function (k) {
       var list = (games[k] || []).slice().sort(function (a, b) { return b.s - a.s || a.t - b.t; });
       list.forEach(function (r, i) {
+        var tot = (r.c != null && r.w != null) ? (r.c + r.w) : 0;
+        var acc = tot > 0 ? Math.round(r.c / tot * 100) : '';
+        var secs = (r.ms != null) ? Math.round(r.ms / 1000) : '';
+        var wrongs = (r.det || []).filter(function (d) { return !d.ok; })
+          .map(function (d) { return (d.q || '?') + ' → 答:' + (d.user || '—') + ' / 正:' + (d.ans || '—'); })
+          .join(' ｜ ');
         lines.push([gMap[k] || k, i + 1,
           '"' + String(r.n).replace(/"/g, '""') + '"', r.s,
+          (r.c != null ? r.c : ''), (r.w != null ? r.w : ''), acc, secs,
+          '"' + wrongs.replace(/"/g, '""') + '"',
           '"' + String(r.d || '').replace(/"/g, '""') + '"', fmtDate(r.t)].join(','));
       });
     });
@@ -184,6 +289,79 @@
     a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 1500);
   }
+
+  /* ---------- 雲端記錄（Google 試算表） ---------- */
+  var CLOUD_EP = '';
+  function loadCloudCfg() {
+    return fetch('../data/cloud.json', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { CLOUD_EP = (d && d.endpoint) || ''; return CLOUD_EP; });
+  }
+  function renderCloud(rows) {
+    var box = document.getElementById('bd-cloud-box');
+    if (!rows.length) {
+      box.innerHTML = '<div class="bd-empty">雲端仲未有記錄。等學生交咗成績就會出現。</div>';
+      return;
+    }
+    var h = '<table class="bd-tbl"><thead><tr>' +
+      '<th>姓名</th><th>遊戲</th><th class="num">分數</th>' +
+      '<th class="num">對/錯</th><th class="num">準確率</th><th class="num">用時</th>' +
+      '<th>錯題</th><th>時間</th></tr></thead><tbody>';
+    rows.slice().reverse().forEach(function (r) {
+      var c = r['答對'] != null && r['答對'] !== '' ? r['答對'] : null;
+      var w = r['答錯'] != null && r['答錯'] !== '' ? r['答錯'] : null;
+      var acc = r['準確率%'] != null && r['準確率%'] !== '' ? r['準確率%'] + '%' : '—';
+      var secs = r['用時(秒)'] != null && r['用時(秒)'] !== '' ? r['用時(秒)'] + 's' : '—';
+      var wd = r['錯題明細'] || '';
+      var wHtml = wd
+        ? '<details class="bd-det"><summary>睇錯題</summary><ul>' +
+          wd.split('▸').filter(Boolean).map(function (x) {
+            var parts = x.split('｜');
+            var q = (parts[0] || '').replace(/^題:\s*/, '').trim();
+            var u = (parts[1] || '').replace(/^答:\s*/, '').trim();
+            var a = (parts[2] || '').replace(/^正解:\s*/, '').trim();
+            return '<li><b>' + esc(q) + '</b><br><span class="bad">學生答：' + esc(u || '—') +
+              '</span> ｜ <span class="good">正確：' + esc(a || '—') + '</span></li>';
+          }).join('') + '</ul></details>'
+        : '<span class="good">全對 ✓</span>';
+      h += '<tr><td>' + esc(r['姓名'] || '') + '</td>' +
+        '<td>' + esc(r['遊戲'] || '') + '</td>' +
+        '<td class="num"><b>' + esc(r['分數']) + '</b></td>' +
+        '<td class="num">' + (c != null ? c + '/' + w : '—') + '</td>' +
+        '<td class="num">' + acc + '</td>' +
+        '<td class="num">' + secs + '</td>' +
+        '<td>' + wHtml + '</td>' +
+        '<td style="font-size:11.5px">' + esc(String(r['時間'] || '').slice(0, 16).replace('T', ' ')) + '</td></tr>';
+    });
+    box.innerHTML = h + '</tbody></table>';
+  }
+  function loadCloud() {
+    var box = document.getElementById('bd-cloud-box');
+    var m = document.getElementById('bd-cloud-msg');
+    loadCloudCfg().then(function (ep) {
+      if (!ep) {
+        box.innerHTML = '<div class="bd-empty">未設定雲端。請睇下面「點樣開通雲端」設定一次。' +
+          '<br>（未設定嗰陣，成績仍然會儲存在學生部電腦，唔會遺失）</div>';
+        return;
+      }
+      box.innerHTML = '<div class="bd-empty">載入緊…</div>';
+      fetch(ep, { cache: 'no-store' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (d && d.ok) {
+            renderCloud(d.rows || []);
+            m.className = 'bd-msg ok';
+            m.textContent = '✅ 雲端共 ' + (d.rows || []).length + ' 筆記錄';
+          } else {
+            box.innerHTML = '<div class="bd-empty">雲端回應異常</div>';
+          }
+        })
+        .catch(function (e) {
+          box.innerHTML = '<div class="bd-empty">連唔到雲端：' + esc(e.message) + '</div>';
+        });
+    });
+  }
+  document.getElementById('bd-cloud-refresh').onclick = loadCloud;
 
   document.getElementById('bd-refresh').onclick = function () { render(); msg(document.getElementById('bd-msg'), '已整理', 'ok'); };
   document.getElementById('bd-csv').onclick = toCsv;
@@ -215,6 +393,7 @@
   }).catch(function () { render(); });
 
   render();
+  loadCloud();
 })();
 </script>
 </body>

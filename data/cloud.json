@@ -1,0 +1,5 @@
+{
+  "_note": "雲端設定。endpoint 填 Google Apps Script Web App 嘅網址（script.google.com/macros/s/.../exec）。未設定就留空 —— 學生端會完全靜默，只存本機記錄。",
+  "endpoint": "",
+  "sheetName": "遊戲成績"
+}
