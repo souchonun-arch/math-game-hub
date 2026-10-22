@@ -62,6 +62,10 @@
 ├── assets/js/qrcode.js   QR 生成器（自托管，MIT）
 ├── assets/js/admin.js    後台邏輯（GitHub API）
 ├── assets/js/board.js    本機排行榜外掛（build 自動注入每款遊戲）
+├── assets/js/analytics.js 答題明細採集（對錯／錯題／用時，12 款通用）
+├── assets/js/cloud.js     雲端上載（Google Apps Script Web App）
+├── data/cloud.json        雲端端點設定（老師填 Google Script 網址）
+├── scripts/google-apps-script.gs  貼去 Google Apps Script 嘅程式碼
 ├── data/games.json       ★ 自動產生，唔好手改
 ├── data/open.json        ★ 開放控制（全站／分區／逐款遊戲）
 ├── data/slugs.json       ★ 網址代號凍結表（手改）
@@ -200,6 +204,26 @@ python3 scripts/make_covers.py
 - 清瀏覽器資料、換機、或者用無痕模式 → 記錄會冇。**記得定期下載 CSV 備份。**
 - 分數靠學生自己確認（自動偵測可能估錯，佢可以改）。呢個係方便，唔係防作弊。
 - **為甚麼唔係雲端**：雲端排行榜需要開通 WorkBuddy 雲服務，而且後端會綁定單一網域（GitHub Pages 唔匹配），所以暫時用本機方案。日後想開雲端，隨時講一聲。
+
+## 成績系統（三層）
+
+| 層 | 位置 | 用途 |
+|---|---|---|
+| 本機 | 學生部電腦 localStorage | 即時排名、斷網都用得 |
+| 雲端 | Google 試算表 | 老師喺任何電腦睇全校數據 |
+| 老師頁 | `/board/`（密碼 `mathgames2026`） | 睇對錯、錯題明細、用時；下載 CSV |
+
+**答題明細**：12 款遊戲全部支援。用「正解 class 反推」策略（純外掛，零改動遊戲程式）——
+答案按鈕被判錯時，正確答案嗰個按鈕會被標 `right`/`ok`/`reveal`，由畫面反推就攞到正解。
+
+**開通雲端（一次性，約 5 分鐘）**
+1. 開 https://script.google.com → 新增專案
+2. 貼上 `scripts/google-apps-script.gs` 內容 → 儲存
+3. 部署 → 新增部署 → 網頁應用程式；執行身分「自己」、存取「任何人」
+4. 攞到 `https://script.google.com/macros/s/xxxx/exec` 網址
+5. 填入 `data/cloud.json` 的 `"endpoint"`，再跑 `python3 scripts/build.py`
+
+未設定雲端時，學生端完全靜默（成績仍存本機），唔會影響遊戲。
 
 ## 重要原則
 
