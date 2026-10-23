@@ -64,6 +64,8 @@
 ├── assets/js/board.js    本機排行榜外掛（build 自動注入每款遊戲）
 ├── assets/js/analytics.js 答題明細採集（對錯／錯題／用時，12 款通用）
 ├── assets/js/cloud.js     雲端上載（Google Apps Script Web App）
+├── assets/js/cloud-rank.js 雲端排行榜模組（相容舊版 RANK API，給《冰河紀元》用）
+├── sources-local/         本機來源副本（macOS 權限限制時用，唔上傳）
 ├── data/cloud.json        雲端端點設定（老師填 Google Script 網址）
 ├── scripts/google-apps-script.gs  貼去 Google Apps Script 嘅程式碼
 ├── data/games.json       ★ 自動產生，唔好手改
