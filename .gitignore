@@ -14,3 +14,7 @@ data/overrides.suggested.json
 # 封面圖原檔（每張約 2MB，只係用嚟跑 scripts/make_covers.py，唔使上傳）
 # 網站實際用嘅係 assets/img/*.jpg（已壓縮），嗰啲要 commit
 assets/img/src/
+
+# 本機來源副本（macOS TCC 權限令 Python 讀唔到某些 Desktop 新檔時，用呢啲副本做來源）
+# 唔上傳：網站用嘅係 games/ 入面 build.py 複製出嚟嘅版本
+sources-local/

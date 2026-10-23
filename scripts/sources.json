@@ -2,19 +2,57 @@
   "_comment": "build.py 的掃描設定。日後要加第四個分區：只需喺 sources 加一筆 dir+section，再喺 data/sections.json 加一筆，唔使改 build.py",
   "root": "/Users/chonunsou/Desktop/ＣＤＳＪ5/26-27學年",
   "sources": [
-    { "dir": "三數學/遊戲", "section": "p3", "recursive": true },
-    { "dir": "六數學/遊戲", "section": "p6", "recursive": true },
-    { "dir": "六數學思維", "section": "challenge", "recursive": true }
+    {
+      "dir": "三數學/遊戲",
+      "section": "p3",
+      "recursive": true
+    },
+    {
+      "dir": "六數學/遊戲",
+      "section": "p6",
+      "recursive": true
+    },
+    {
+      "dir": "六數學思維",
+      "section": "challenge",
+      "recursive": true
+    }
   ],
   "minBytes": 20480,
   "newDays": 30,
   "_newDaysReason": "來源檔喺幾多日內改過就自動標 🔥 NEW。想收窄（例如得返最近幾款著火）就改細呢個數字，例如 7 或 14。另外可以喺 data/overrides.json 為個別遊戲寫 \"new\": true 強制著火，或 \"new\": false 強制熄火。",
-  "excludeSubstrings": ["原始備份"],
+  "excludeSubstrings": [
+    "原始備份"
+  ],
   "excludeRelPaths": [
     "三數學/遊戲/06四則運算次序/06四則運算次序.html"
   ],
   "_excludeRelPathsReason": "此檔與 06四則運算次序/index.html md5 完全相同（2ec1f8ec9b6c36deb41517e310aa4d63），只上架一份",
-  "attachExtensions": [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".js", ".css", ".mp3", ".ogg", ".json"],
-  "attachNeverCopy": ["bank-p1.js", "AI_PROMPTS.md"],
-  "_attachNeverCopyReason": "實測證實無被任何遊戲引用"
+  "attachExtensions": [
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".webp",
+    ".svg",
+    ".js",
+    ".css",
+    ".mp3",
+    ".ogg",
+    ".json"
+  ],
+  "attachNeverCopy": [
+    "bank-p1.js",
+    "AI_PROMPTS.md"
+  ],
+  "_attachNeverCopyReason": "實測證實無被任何遊戲引用",
+  "includeFilesLocal": [
+    {
+      "path": "sources-local/ice-age-light.html",
+      "source": "六數學/遊戲/冰河紀元・知識之光（單機自包含版）.html",
+      "section": "challenge",
+      "_reason": "本機副本（macOS TCC 權限令 Python 讀唔到 Desktop 內今日新增嘅檔）"
+    }
+  ],
+  "_includeFilesLocalReason": "直接用 repo 內 sources-local/ 嘅檔案做來源。適用於 macOS TCC 權限令 Python 讀唔到某些 Desktop 新檔嘅情況（2026-10-23 冰河紀元就係咁）。source 欄對應 slugs.json 嘅 key。"
 }

@@ -1,9 +1,43 @@
 {
-  "updated": "2026-10-22 10:11",
-  "count": 12,
-  "totalBytes": 48866474,
+  "updated": "2026-10-23 16:39",
+  "count": 13,
+  "totalBytes": 52134808,
   "newDays": 30,
   "games": [
+    {
+      "id": "ice-age-light",
+      "section": "challenge",
+      "title": "冰河紀元 · 知識之光",
+      "titleFromHtml": "冰河紀元 · 知識之光",
+      "topic": "數學思維 · 規律題",
+      "keywords": [
+        "規律",
+        "思維",
+        "五年級",
+        "冰河",
+        "知識之光",
+        "數列",
+        "找規律",
+        "推理"
+      ],
+      "bytes": 3268334,
+      "totalBytes": 3268334,
+      "sizeText": "3.1 MB",
+      "wifi": "medium",
+      "depCount": 0,
+      "needsNetwork": true,
+      "sha256": "d49dd09469ad3535c688ab060bb9d9c7af36dc03fa27505c09bef56f2be47ac9",
+      "source": "六數學/遊戲/冰河紀元・知識之光（單機自包含版）.html",
+      "entry": "games/challenge/ice-age-light/",
+      "file": "play.html",
+      "deps": [],
+      "unresolvedRefs": [
+        "../cloud-rank.js"
+      ],
+      "updatedAt": "2026-10-23",
+      "addedAt": "2026-10-23",
+      "isNew": true
+    },
     {
       "id": "decimal-fraction-mental",
       "section": "challenge",

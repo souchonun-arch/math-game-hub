@@ -39,7 +39,8 @@
     'percent-spirit-battle':    { q: ['#qo-0', '#qo-1'],                   sel: '.opt' },
     'vertical-multiplication-battle': { q: ['#qNum1', '#qNum2'],       sel: '.cell', perCell: true },
     'game24-invention':         { q: ['#qnum0', '#qnum1'],                 sel: '.key',  custom24: true },
-    'mm-dm-measure':            { q: null,                                 sel: null,   customMM: true }
+    'mm-dm-measure':            { q: null,                                 sel: null,   customMM: true },
+    'ice-age-light':            { q: ['#seq0', '#seq1', '#seq2'],           sel: '.opt, .ibx', customIce: true }
   };
   var cfg = CFG[SLUG] || null;
   if (!cfg) return;
@@ -174,6 +175,72 @@
     if (document.body) mo2.observe(document.body, { subtree: true, childList: true });
     else document.addEventListener('DOMContentLoaded', function () { mo2.observe(document.body, { subtree: true, childList: true }); });
   }
+  if (cfg.customIce) {
+    /* 冰河紀元：G 係 const（script scope），要用 eval 讀；
+       G.wrongList 已經有完整錯題（seq / a1 / a2 / cat / who / steps） */
+    function readG() {
+      try { return eval('G'); } catch (e) { return null; }
+    }
+    function iceSnapshot() {
+      var g = readG();
+      if (!g) return null;
+      var players = g.players || [];
+      var me = null;
+      // 搵返「我」：搵第一個有答題記錄嘅玩家（同局單人時就係唯一嗰個）
+      for (var i = 0; i < players.length; i++) {
+        if (players[i] && (players[i].correct || players[i].wrong)) { me = players[i]; break; }
+      }
+      if (!me && players.length) me = players[0];
+      var wrongs = (g.wrongList || []).filter(function (w) {
+        return !me || !w.who || w.who === me.name;
+      });
+      var pend = window.MGHIcePending ? window.MGHIcePending() : null;
+      var detail = wrongs.map(function (w) {
+        var mine = '';
+        if (pend && pend.v1) {
+          mine = (pend.v1 + ' , ' + (pend.v2 || '')).trim();
+          pend = null;    // 只填最近一條
+        }
+        return {
+          q: (w.seq || []).join(', ') + ' , ? , ?',
+          user: mine || '—',
+          ans: String(w.a1) + ' , ' + String(w.a2),
+          ok: false,
+          ms: 0,
+          at: Date.now(),
+          steps: w.steps || ''
+        };
+      });
+      return {
+        correct: me ? (me.correct || 0) : 0,
+        wrong: me ? (me.wrong || 0) : wrongs.length,
+        detail: detail,
+        timeMs: (typeof OPT !== 'undefined' && OPT.seconds > 0 && g.timeLeft != null)
+          ? (OPT.seconds - g.timeLeft) * 1000 : 0,
+        score: me ? Math.round(me.dmg || me.score || 0) : 0
+      };
+    }
+    window.MGHIceSnapshot = iceSnapshot;
+
+    /* 輸入模式（lv2/lv3）：監聽 submitSlot 觸發前嘅 input 值，
+       因為答錯後 input 會被清空，事後搵唔返。 */
+    var icePending = null;
+    document.addEventListener('input', function (e) {
+      var el = e.target;
+      if (!el || !el.id) return;
+      if (!/^ib\d+_[01]$/.test(el.id)) return;
+      if (!icePending) icePending = { v1: '', v2: '' };
+      if (/_0$/.test(el.id)) icePending.v1 = el.value;
+      if (/_1$/.test(el.id)) icePending.v2 = el.value;
+    }, true);
+    document.addEventListener('click', function (e) {
+      var b = e.target && e.target.closest ? e.target.closest('#go0,#go1,#go2') : null;
+      if (b && icePending) {
+        icePending.go = b.id;
+      }
+    }, true);
+    window.MGHIcePending = function () { return icePending; };
+  }
   if (cfg.customMM) {
     document.addEventListener('click', function (e) {
       var b = e.target && e.target.closest ? e.target.closest('.submit, button') : null;
@@ -196,6 +263,17 @@
     snapshot: function () {
       var name = '';
       try { name = localStorage.getItem(NAME_KEY) || ''; } catch (e) { }
+      if (cfg.customIce && window.MGHIceSnapshot) {
+        var ice = window.MGHIceSnapshot();
+        if (ice) {
+          return {
+            v: 1, game: SLUG, title: TITLE, ts: Date.now(),
+            player: name,
+            score: ice.score, correct: ice.correct, wrong: ice.wrong,
+            timeMs: ice.timeMs, detail: ice.detail
+          };
+        }
+      }
       return {
         v: 1,
         game: SLUG,

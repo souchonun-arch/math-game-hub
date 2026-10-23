@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import shutil
 import sys
@@ -59,6 +60,18 @@ def _cloud_endpoint() -> str:
 
 CLOUD_ENDPOINT = _cloud_endpoint()
 
+
+def _sources_root() -> str:
+    try:
+        raw = SOURCES_FILE.read_text(encoding="utf-8")
+        obj = json.loads(raw)
+        return str(obj.get("root") or "")
+    except Exception:
+        return ""
+
+
+SOURCES_ROOT = _sources_root()
+
 TZ = timezone(timedelta(hours=8))
 
 REF_RE = re.compile(r"""(?:src|href)\s*=\s*["']([^"']+)["']""")
@@ -80,6 +93,14 @@ def inject_board(text: bytes, g: dict) -> bytes:
     只係加兩行 <script>，完全唔郁遊戲內部程式；萬一外掛出事都唔會拖累遊戲。
     play.html 位於 games/<分區>/<slug>/，所以 assets 要上三層。
     """
+    # 改寫外部 cloud-rank.js 引用 → 指向總站 assets（原本喺遊戲上一層，搬上雲端後會 404）
+    text = text.replace(
+        b'<script src="../cloud-rank.js"></script>',
+        b'<script src="../../../assets/js/cloud-rank.js"></script>')
+    text = text.replace(
+        b'<script src="./cloud-rank.js"></script>',
+        b'<script src="../../../assets/js/cloud-rank.js"></script>')
+
     # 已經注入過 board.js 就要補返 analytics.js（新增外掛時唔使重洗全部遊戲）
     if b'cloud.js' in text:
         return text  # 三個外掛都齊
@@ -258,6 +279,58 @@ def collect_source_files(cfg: dict) -> list[Path]:
     return files
 
 
+def resolve_source(rel: str, retries: int = 3) -> "Path | None":
+    """搵一個來源檔案（帶重試）。
+
+    macOS TCC 權限下，Python 第一次讀某個 Desktop 子目錄時有機會拿到過期快照
+    （明明個檔存在，os.path.exists 卻回 False）。重試幾次就會正常。
+    """
+    import time
+    hp = Path(SOURCES_ROOT) / rel
+    for i in range(retries):
+        if os.path.isfile(str(hp)):
+            return hp
+        # 重新列舉一次父目錄，迫系統刷新
+        parent = os.path.dirname(str(hp))
+        if os.path.isdir(parent):
+            try:
+                list(os.scandir(parent))
+            except OSError:
+                pass
+        time.sleep(0.25)
+    return hp if os.path.isfile(str(hp)) else None
+
+
+def scan_html_recursive(rel_dir: str) -> list[str]:
+    """遞迴搵出 rel_dir 下面所有 .html 檔（相對 rel_dir 嘅路徑）。
+
+    用 os.scandir 而唔係 pathlib.rglob()：pathlib 喺 macOS TCC 權限下可能返回
+    過期嘅目錄快照（明明有新檔案但睇唔到），scandir 每次都直接問系統所以準確。
+    """
+    import os
+    base = os.path.join(str(SOURCES_ROOT), rel_dir)
+    if not os.path.isdir(base):
+        return []
+    found: list[str] = []
+    stack = [("", base)]
+    while stack:
+        prefix, cur = stack.pop()
+        try:
+            entries = list(os.scandir(cur))
+        except (PermissionError, OSError):
+            continue
+        for e in entries:
+            rel = prefix + e.name
+            try:
+                if e.is_dir(follow_symlinks=False):
+                    stack.append((rel + "/", e.path))
+                elif e.is_file() and e.name.lower().endswith(".html"):
+                    found.append(rel)
+            except OSError:
+                continue
+    return sorted(found)
+
+
 def scan_games(cfg: dict, slugs: dict, overrides: dict) -> tuple[list[dict], list[dict]]:
     """掃描並回傳 (收錄嘅遊戲, 被排除嘅檔案)"""
     root = Path(cfg["root"])
@@ -270,14 +343,19 @@ def scan_games(cfg: dict, slugs: dict, overrides: dict) -> tuple[list[dict], lis
 
     for src in cfg["sources"]:
         section = src["section"]
-        d = root / src["dir"]
-        if not d.is_dir():
+        if not os.path.isdir(os.path.join(str(SOURCES_ROOT), src["dir"])):
+            print(f"⚠️  來源目錄唔存在，已跳過：{src['dir']}", file=sys.stderr)
             continue
-        html_files = sorted(p for p in d.rglob("*.html") if p.is_file())
+        html_rels = scan_html_recursive(src["dir"])
         seen_hash: dict[str, str] = {}  # sha256 -> 已收錄嘅相對路徑（用嚟踢走重複檔）
 
-        for hp in html_files:
-            rel = hp.relative_to(root).as_posix()
+        for rel_in_src in html_rels:
+            rel = (src["dir"] + "/" + rel_in_src).replace("//", "/")
+            hp = resolve_source(rel)
+            if hp is None:
+                excluded.append({"rel": rel, "section": section,
+                                 "reason": "檔案讀唔到（可能權限或已被移動）"})
+                continue
 
             # 排除規則
             hit = None
@@ -307,6 +385,61 @@ def scan_games(cfg: dict, slugs: dict, overrides: dict) -> tuple[list[dict], lis
                 continue
 
             games.append(_build_entry(hp, rel, raw, digest, section, slugs, overrides, cfg, is_new=False))
+
+    # ---- 指定檔案 → 指定分區（覆蓋 dir 掃描結果）----
+    # 例：冰河紀元喺「六數學/遊戲」資料夾，但係思維題 → 指定放 challenge 區
+    forced = {}
+    for item in cfg.get("includeFiles", []):
+        forced[item["file"]] = item["section"]
+
+    if forced:
+        by_rel = {g["source"]: g for g in games}
+        for rel, want_section in forced.items():
+            hp = resolve_source(rel)
+            if hp is None:
+                excluded.append({"rel": rel, "section": want_section,
+                                 "reason": "includeFiles 指定嘅檔案搵唔到（可能已搬走）"})
+                continue
+            raw = read_bytes(hp)
+            digest = sha256_of(raw)
+            g = by_rel.get(rel)
+            if g is None:
+                # 檔案唔喺任何 dir 掃描範圍 → 直接加入
+                if rel not in slugs:
+                    excluded.append({"rel": rel, "section": want_section,
+                                     "reason": "新遊戲：slugs.json 未登記，需要人手確認 slug"})
+                    games.append(_build_entry(hp, rel, raw, digest, want_section,
+                                              slugs, overrides, cfg, is_new=True))
+                    continue
+                games.append(_build_entry(hp, rel, raw, digest, want_section,
+                                          slugs, overrides, cfg, is_new=False))
+            else:
+                # 已經喺 dir 掃描入面 → 改分區
+                if g["section"] != want_section:
+                    g["section"] = want_section
+                    g["entry"] = f"games/{want_section}/{g['id']}/"
+
+    # ---- 本機副本來源（繞過 macOS TCC 權限）----
+    # 某些 Desktop 新檔，Python 讀唔到（os.path.isfile 回 False，但 ls/CP 就正常）。
+    # 呢類檔案用 sources-local/ 入面嘅副本做來源。
+    for item in cfg.get("includeFilesLocal", []):
+        rel = item["source"]
+        want_section = item["section"]
+        hp = REPO / item["path"]
+        if not os.path.isfile(str(hp)):
+            excluded.append({"rel": rel, "section": want_section,
+                             "reason": f"本機副本唔見咗：{item['path']}"})
+            continue
+        raw = read_bytes(hp)
+        digest = sha256_of(raw)
+        if rel not in slugs:
+            excluded.append({"rel": rel, "section": want_section,
+                             "reason": "新遊戲：slugs.json 未登記，需要人手確認 slug"})
+            games.append(_build_entry(hp, rel, raw, digest, want_section,
+                                      slugs, overrides, cfg, is_new=True))
+            continue
+        games.append(_build_entry(hp, rel, raw, digest, want_section,
+                                  slugs, overrides, cfg, is_new=False))
 
     return games, excluded
 
