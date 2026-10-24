@@ -25,9 +25,10 @@
     "原始備份"
   ],
   "excludeRelPaths": [
-    "三數學/遊戲/06四則運算次序/06四則運算次序.html"
+    "三數學/遊戲/06四則運算次序/06四則運算次序.html",
+    "六數學思維/邏輯偵探社・思維對戰.html"
   ],
-  "_excludeRelPathsReason": "此檔與 06四則運算次序/index.html md5 完全相同（2ec1f8ec9b6c36deb41517e310aa4d63），只上架一份",
+  "_excludeRelPathsReason": "排除已由本機副本收錄的重複檔；四則運算次序亦與 06四則運算次序/index.html md5 完全相同",
   "attachExtensions": [
     ".png",
     ".jpg",
@@ -57,7 +58,7 @@
       "path": "sources-local/logic-detective.html",
       "source": "六數學思維/邏輯偵探社・思維對戰.html",
       "section": "challenge",
-      "_reason": "六年級邏輯推理對戰（矛盾證詞＋3×3配對＋半真半假＋兩人好事，200題）。同時已放一份喺 Desktop「六數學思維」資料夾做正規來源"
+      "_reason": "新版正式來源：固定使用本機建置檔，避免發布時被桌面舊檔覆蓋"
     }
   ],
   "_includeFilesLocalReason": "直接用 repo 內 sources-local/ 嘅檔案做來源。適用於 macOS TCC 權限令 Python 讀唔到某些 Desktop 新檔嘅情況（2026-10-23 冰河紀元就係咁）。source 欄對應 slugs.json 嘅 key。"
