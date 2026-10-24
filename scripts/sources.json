@@ -52,6 +52,12 @@
       "source": "六數學/遊戲/冰河紀元・知識之光（單機自包含版）.html",
       "section": "challenge",
       "_reason": "本機副本（macOS TCC 權限令 Python 讀唔到 Desktop 內今日新增嘅檔）"
+    },
+    {
+      "path": "sources-local/logic-detective.html",
+      "source": "六數學思維/邏輯偵探社・思維對戰.html",
+      "section": "challenge",
+      "_reason": "六年級邏輯推理對戰（矛盾證詞＋3×3配對＋半真半假＋兩人好事，200題）。同時已放一份喺 Desktop「六數學思維」資料夾做正規來源"
     }
   ],
   "_includeFilesLocalReason": "直接用 repo 內 sources-local/ 嘅檔案做來源。適用於 macOS TCC 權限令 Python 讀唔到某些 Desktop 新檔嘅情況（2026-10-23 冰河紀元就係咁）。source 欄對應 slugs.json 嘅 key。"

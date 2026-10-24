@@ -15,7 +15,7 @@
   'use strict';
   if (window.RANK) return;   // 已經有就唔好覆蓋
 
-  var CFG_URL = '../data/cloud.json';
+  var CFG_URL = (function(){ try { var segs = location.pathname.split('/'); var up=''; for (var i=0;i<3;i++) up += '../'; return up + 'data/cloud.json'; } catch(e){ return '../data/cloud.json'; } })();
   var NICK_KEY = 'mgh_board_name';
   var LOCAL_KEY = 'mgh_rank_v1';
 
