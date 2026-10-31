@@ -438,7 +438,21 @@ body.ult-shake{animation:ultShake .6s ease}
 
 /* v4 可讀性 + 明亮偵探場景 */
 .qcard{position:relative}
-.qtext{font-size:16px;line-height:1.55}
+
+/* 🔴 v5 修：線索／題目文字被選項區遮住（波仔實測「很多字都看不到」）
+   成因：.qtext 係 .qcard（flex column）入面唯一會被壓縮的 item。
+        答題卡高度唔夠時，實測 .qtext clientHeight=91 但 scrollHeight=195，
+        溢出的線索文字直接被下面 .opts 選項區（有實色背景）蓋住。
+   解法：flex:1 1 auto + min-height:0 + overflow-y:auto
+        → 佔滿 header 與 opts 之間的剩餘空間；內容多時卡內自己捲，
+          永遠唔會溢出壓住選項。 */
+.qtext{font-size:16px;line-height:1.55;
+  flex:1 1 auto;min-height:0!important;
+  overflow-y:auto;overscroll-behavior:contain;padding-right:4px}
+.qtext::-webkit-scrollbar{width:6px}
+.qtext::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:99px}
+/* 線索之間留返少少空間，密到貼埋會好難讀 */
+.qtext .case-clues{gap:3px}
 .case-story,.case-cond,.clue,.case-q{font-size:14px!important;line-height:1.5!important}
 .card-solution{position:absolute;inset:0;z-index:8;display:none;flex-direction:column;gap:8px;overflow:hidden;padding:16px;background:#172033;color:#f8fafc;border:4px solid #0b1220;border-radius:14px;overscroll-behavior:contain}
 .card-solution.show{display:flex}
@@ -455,6 +469,19 @@ body.ult-shake{animation:ultShake .6s ease}
 #scaffold .sol-step{color:#172033!important}
 #scaffold .sol-h{color:#92400e!important;font-weight:800}
 #scaffold .note{color:#713f12!important}
+/* 🔴 上面 .qtext 覆寫咗 font-size，會蓋過藍本第 358 行 @media(max-height:760px)
+   入面的縮排規則 → 必須補返，否則細螢幕字太大又會再溢出。
+   🔴 同時修正方向錯誤：藍本喺細螢幕把 qcard 由 45vh 縮到 43vh（少咗），
+      但細螢幕真正需要的是「更多」空間 → 改為逐級加大。
+      實測 800×600：43vh 時第三條線索仍被選項遮住。 */
+@media(max-height:760px){#quiz-row .qcard{max-height:52vh}.qtext{font-size:13px;line-height:1.45}}
+@media(max-height:680px){#quiz-row .qcard{max-height:60vh}.qtext{font-size:12.5px;line-height:1.4}.qtext .case-clues{gap:2px}}
+@media(max-height:620px){
+  #quiz-row .qcard{max-height:66vh}
+  .qtext{font-size:12px;line-height:1.35}
+  .opt{padding:5px 6px 5px 34px!important;font-size:13px!important}
+  .opt .key{width:26px!important;height:22px!important}
+}
 </style>
 
 <style>
@@ -2663,15 +2690,18 @@ const Game = {
 
   freshBag(){
     /* 難度真正分層：低＝lv1 題・中＝lv2 題・高＝lv3 題；熱身模式只出首兩階段題目 */
-    const lvOf = this.curLv || { easy:1, normal:2, hard:3 }[this.diff] || 2;
+    const lvOf = this.curLv || Math.max(1, (({ easy:1, normal:2, hard:3 })[this.diff] || 2) - 1);
     const stages = this.diff==="easy" ? [1,2] : [1,2,3];
     /* 只列式模式：只抽有 exprs（列式選項）嘅題目 */
     const src = this.qtype==="expr" ? QUESTIONS.filter(q=>q.exprs && q.exprs.length===4) : QUESTIONS;
     const bag=[];
     for(const s of stages){
-      const qs = src.filter(q=>q.stage===s && (q.lv||2)===lvOf).map(q=>({q}));
-      for(let i=qs.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [qs[i],qs[j]]=[qs[j],qs[i]]; }
-      bag.push(...qs);
+      const _all = src.filter(q=>q.stage===s && (q.lv||2)===lvOf);
+      const _shuf = a=>{ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+      /* 線索 ≤3 條的排前面 → 前期題目短、易讀；4 條的排後面，等學生熱咗身先出 */
+      const _short = _shuf(_all.filter(q=>(q.clues||[]).length<=3)).map(q=>({q}));
+      const _long  = _shuf(_all.filter(q=>(q.clues||[]).length>=4)).map(q=>({q}));
+      bag.push(..._short, ..._long);
     }
     return bag;
   },
@@ -3295,15 +3325,21 @@ window.Game = Game; window.Scaffold = Scaffold; window.Human = Human;
     dpb.innerHTML=h;
   };
   Game.initOpenClass=function(){
-    this.maxCombo=0; this.curLv=({easy:1,normal:2,hard:3})[this.diff]||2;
+    this.maxCombo=0; this.curLv=Math.max(1,(({easy:1,normal:2,hard:3})[this.diff]||2)-1);
     this.adaptive=!!OC.settings.adaptive; this.streakR=0; this.streakW=0;
-    document.getElementById('data-panel').classList.add('on');
+    /* 🔴 v5 修：data-panel 係教師公開課嘅「即時學習數據」面板，
+       但 Game.start() 無條件呼叫 initOpenClass() → 單人／雙人／三人模式都會開，
+       而它 position:fixed;top:62px;right:10px;z-index:60 會遮住右上角 Boss 血條數字
+       （波仔實測：很多字看不到）。
+       → 改為淨係 ?oc=1（教師公開課）先顯示；學生模式一律唔開。 */
+    if(/[?&]oc=1\b/.test(location.search)) document.getElementById('data-panel').classList.add('on');
+    else document.getElementById('data-panel').classList.remove('on');
     renderLB('lb-end-body'); Sfx.speak&&Sfx.speak('訓練開始');
   };
   Game.adapt=function(pi,ok){
     this.maxCombo=Math.max(this.maxCombo||0,this.combo[pi]||0);
     if(!this.adaptive) return;
-    if(ok){ this.streakW=0; this.streakR++; if(this.streakR>=2&&this.curLv<3){this.curLv++;this.streakR=0;this.rebuildBag('難度提升 → 高');} }
+    if(ok){ this.streakW=0; this.streakR++; if(this.streakR>=3&&this.curLv<3){this.curLv++;this.streakR=0;this.rebuildBag('難度提升 → 高');} }
     else { this.streakR=0; this.streakW++; if(this.streakW>=2&&this.curLv>1){this.curLv--;this.streakW=0;this.rebuildBag('難度下降 → 低');} }
   };
   Game.rebuildBag=function(msg){ this.bag=this.freshBag(); this.bagIdx=0; OC.toast(msg); };

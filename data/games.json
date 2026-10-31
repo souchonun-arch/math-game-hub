@@ -1,7 +1,7 @@
 {
-  "updated": "2026-10-25 08:17",
+  "updated": "2026-10-31 10:24",
   "count": 14,
-  "totalBytes": 61723766,
+  "totalBytes": 61726411,
   "newDays": 30,
   "games": [
     {
@@ -105,19 +105,19 @@
       "titleFromHtml": "邏輯偵探社・思維對戰",
       "topic": "未分類",
       "keywords": [],
-      "bytes": 9588958,
-      "totalBytes": 9588958,
+      "bytes": 9591603,
+      "totalBytes": 9591603,
       "sizeText": "9.1 MB",
       "wifi": "heavy",
       "depCount": 0,
       "needsNetwork": false,
-      "sha256": "af24a91e9132e4c106c06ba235afe2805244059483a5751e43834a05a953d57c",
+      "sha256": "db8dc8ba13d761f4f1c06cb4f862333e458d374671e7d3df659eb1b949c0acaa",
       "source": "六數學思維/邏輯偵探社・思維對戰.html",
       "entry": "games/challenge/logic-detective/",
       "file": "play.html",
       "deps": [],
       "unresolvedRefs": [],
-      "updatedAt": "2026-10-25",
+      "updatedAt": "2026-10-31",
       "addedAt": "2026-10-24",
       "isNew": true
     },
@@ -209,7 +209,7 @@
       "unresolvedRefs": [],
       "updatedAt": "2026-09-29",
       "addedAt": "2026-09-29",
-      "isNew": true
+      "isNew": false
     },
     {
       "id": "unit-conversion",
@@ -332,7 +332,7 @@
       "unresolvedRefs": [],
       "updatedAt": "2026-09-29",
       "addedAt": "2026-09-29",
-      "isNew": true
+      "isNew": false
     },
     {
       "id": "simple-interest-monster",
