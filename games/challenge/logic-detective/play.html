@@ -87,6 +87,20 @@ html,body{width:100%;height:100%;overflow:hidden;background:#dbeafe;
 #phase-label{font-size:12px;font-weight:800;color:#b45309}
 #bosshp-line{width:230px;height:11px;background:#d1d5db;border:2px solid #9ca3af;border-radius:99px;overflow:hidden;margin:3px auto 0}
 #bosshp-line>i{display:block;height:100%;background:linear-gradient(90deg,#f87171,#dc2626);transition:width .4s}
+/* 🔴 v7 血條四段刻度：三條白線標出四隻 Boss 的分界，學生一眼睇到打到第幾隻 */
+#boss-hp{position:relative}
+#boss-hp::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background-image:repeating-linear-gradient(90deg,transparent 0,transparent calc(25% - 1.5px),rgba(255,255,255,.92) calc(25% - 1.5px),rgba(255,255,255,.92) calc(25% + 1.5px),transparent calc(25% + 1.5px),transparent 25%)}
+/* 🔴 v7 階段橫幅 */
+#phase-banner{position:fixed;left:50%;top:22%;z-index:57;transform:translate(-50%,-50%) scale(.82);
+  padding:12px 32px;border-radius:999px;font-size:24px;font-weight:900;color:#fff;white-space:nowrap;
+  background:linear-gradient(135deg,#7c3aed,#db2777);box-shadow:0 10px 30px rgba(124,58,237,.45);
+  opacity:0;pointer-events:none;transition:opacity .22s ease,transform .38s cubic-bezier(.2,1.4,.4,1)}
+#phase-banner.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#phase-banner.rage{background:linear-gradient(135deg,#dc2626,#f59e0b);
+  box-shadow:0 10px 36px rgba(220,38,38,.55);animation:ragePulse .72s ease-in-out 2}
+@keyframes ragePulse{0%,100%{box-shadow:0 10px 36px rgba(220,38,38,.55)}50%{box-shadow:0 12px 54px rgba(245,158,11,.92)}}
+@media(max-height:680px){#phase-banner{font-size:19px;padding:9px 24px;top:26%}}
 #boss-plate{background:var(--panel);border:3px solid var(--pk-dark);border-radius:14px;
   padding:6px 16px 8px;box-shadow:0 4px 0 var(--pk-dark);min-width:220px;text-align:left;pointer-events:none}
 #boss-plate #boss-name{font-size:16px;font-weight:900;color:var(--ink);margin-right:8px}
@@ -573,6 +587,7 @@ body.ult-shake{animation:ultShake .6s ease}
 <div id="ult-banner"><div class="txt" id="ult-txt"></div></div>
 <div id="bossflash"></div>
 <div id="boss-ult-banner"><div class="txt" id="boss-ult-txt"></div></div>
+<div id="phase-banner"></div>
 
 <!-- 合擊技全屏過場：巨大技能名炸出後才放招 -->
 <div id="combo-cinematic">
@@ -2564,7 +2579,7 @@ window.Sfx = Sfx;
 <script>
 /* ================= 遊戲核心：一人一題・即時制・組隊打同一位首領 ================= */
 /* 傷害因人數調整：單人基準・雙人攻擊加強・三人單擊減弱（靠合擊技「真相大白」輸出） */
-const CFG = { hpMax:4, dmgBase:[0,20,25,14], dmgCombo:[0,5,6,3], dmgUlt:75, comboDmg:80, bossAtk:1, timeoutPenalty:1, healCombo:1, bossUltDmg:2, bossUltWrong:2, gameSeconds:480, qSeconds:60, speedBase:4, speedMax:40 };
+const CFG = { hpMax:4, dmgBase:[0,20,25,14], dmgCombo:[0,5,6,3], dmgUlt:75, comboDmg:80, bossAtk:1, timeoutPenalty:1, healCombo:1, bossUltDmg:2, bossUltWrong:2, gameSeconds:600, qSeconds:60, speedBase:4, speedMax:40 };
 const PHASES = [
   {name:"第一階段 · 謎霧小妖", img:"boss1", lv:25},
   {name:"第二階段 · 謊言狸貓", img:"boss2", lv:35},
@@ -2646,7 +2661,11 @@ const Game = {
     const n = this.activeSet.size;
     this.hp=[CFG.hpMax,CFG.hpMax,CFG.hpMax]; this.mp=[0,0,0]; this.combo=[0,0,0]; this.perWrong=[0,0,0]; this.perRight=[false,false,false]; this.comboHits=0;
     /* 組隊打怪：人越多 Boss 越硬 */
-    this.bossHpMax = [0,340,430,520][n] - (this.diff==="easy"?60:0);
+    /* 🔴 v7 血量提高（實測校準）：舊值 340/430/520 令一局只打 7–8 題，
+       第四階段（最後 25%）只活 1 題就完。新值按「每階段 3–4 題」反推：
+         單人每題約 50 傷、雙人約 90 傷（合擊 +80）、三人約 110 傷 → 血量要按人數拉開。
+       easy 打 72 折（新手答得慢，純降血量唔降難度）。 */
+    this.bossHpMax = Math.round([0,900,1600,2100][n] * (this.diff==="easy"?0.72:1));
     this.bossHp = this.bossHpMax;
     this.phase = 0; this.timer = CFG.gameSeconds;
     this.wrongLog = []; this.recent = [];
@@ -2722,6 +2741,18 @@ const Game = {
     document.querySelector("#boss-plate .np-lv").textContent = "Lv." + ph.lv;
     document.getElementById("phase-label").textContent = ph.name;
     Stage3D.setBossStage(phaseIdx, ASSETS);
+    this.phaseBanner(phaseIdx);
+  },
+  /* 🔴 v7 換 Boss 儀式感：彈階段橫幅；第四階段轉紅色狂暴 */
+  phaseBanner(i){
+    const el = document.getElementById('phase-banner');
+    if(!el) return;
+    const ph = PHASES[i] || PHASES[0];
+    const short = ph.name.split('· ')[1] || ph.name;
+    el.textContent = i >= 3 ? ('🔥 最終階段 · ' + short) : ('第 ' + (i+1) + ' 階段 · ' + short);
+    el.classList.toggle('rage', i >= 3);
+    el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+    this.later(()=>el.classList.remove('on'), 1700);
   },
 
   freshBag(){
@@ -2891,7 +2922,8 @@ const Game = {
       const usedMs = performance.now() - this.perStart[pi];
       const sratio = Math.max(0, Math.min(1, (CFG.qSeconds*1000 - usedMs) / (CFG.qSeconds*1000)));
       const speedBonus = Math.round(sratio * CFG.speedMax);
-      const gain = CFG.speedBase + speedBonus + Math.min(this.combo[pi],4)*2;
+      const gain = CFG.speedBase + speedBonus + Math.min(this.combo[pi],4)*2
+                   + (this.phase>=3 ? 10 : 0);   /* 🔴 v7 最終階段：每題額外 +10 分 */
       this.stats[pi].correct++; this.stats[pi].score += gain;
       if(btn) btn.classList.add("correct");
       Sfx.correct();
@@ -3109,10 +3141,11 @@ const Game = {
     const target=this.bossHp<=this.bossHpMax*.25?3:this.bossHp<=this.bossHpMax*.5?2:this.bossHp<=this.bossHpMax*.75?1:0;
     if(target>this.phase&&!this.phasePending){
       this.phasePending=true;
+      /* 🔴 v7 一次只升一級 + next 用進入時快照（原本 swap 內重算會跳級） */
+      const next=Math.min(target, this.phase+1);
       const swap=()=>{
         if(Stage3D.debugState().casts>0){this.later(swap,80);return;}
         this.phasePending=false;
-        const next=this.bossHp<=this.bossHpMax*.25?3:this.bossHp<=this.bossHpMax*.5?2:1;
         if(this.ending||next<=this.phase)return;
         this.phase=next;this.setBoss(next);Sfx.phase();
         this.activeSet.forEach(i=>{this.hp[i]=Math.min(CFG.hpMax,this.hp[i]+1);this.dmgAt(i,'+1','heal');});this.syncAll();
