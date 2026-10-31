@@ -474,13 +474,47 @@ body.ult-shake{animation:ultShake .6s ease}
    🔴 同時修正方向錯誤：藍本喺細螢幕把 qcard 由 45vh 縮到 43vh（少咗），
       但細螢幕真正需要的是「更多」空間 → 改為逐級加大。
       實測 800×600：43vh 時第三條線索仍被選項遮住。 */
-@media(max-height:760px){#quiz-row .qcard{max-height:52vh}.qtext{font-size:13px;line-height:1.45}}
-@media(max-height:680px){#quiz-row .qcard{max-height:60vh}.qtext{font-size:12.5px;line-height:1.4}.qtext .case-clues{gap:2px}}
+/* 🔴 v6 高度預算：加咗 💡 提示按鈕之後，卡片多咗 ~30px 佔用，
+   實測 1024×768（唔觸發任何 media query，用藍本基礎 45vh）下
+   qtext 溢出 71px → 第二條線索被裁走。解法：
+   ① 基礎卡片高度 45vh → 54vh（藍本第 256 行，呢度覆寫）
+   ② 展開提示時再加高（.hinting），換題自動移除
+   ③ .qtext 保留 overflow-y:auto 做兜底（極端情況仍可捲動，唔會壓住選項） */
+#quiz-row .qcard{max-height:54vh}
+#quiz-row .qcard.hinting{max-height:64vh}
+@media(max-height:760px){#quiz-row .qcard{max-height:60vh}#quiz-row .qcard.hinting{max-height:70vh}.qtext{font-size:13px;line-height:1.45}}
+@media(max-height:680px){#quiz-row .qcard{max-height:68vh}#quiz-row .qcard.hinting{max-height:78vh}.qtext{font-size:12.5px;line-height:1.4}.qtext .case-clues{gap:2px}}
 @media(max-height:620px){
-  #quiz-row .qcard{max-height:66vh}
+  #quiz-row .qcard{max-height:74vh}
+  #quiz-row .qcard.hinting{max-height:84vh}
   .qtext{font-size:12px;line-height:1.35}
   .opt{padding:5px 6px 5px 34px!important;font-size:13px!important}
   .opt .key{width:26px!important;height:22px!important}
+}
+/* ===== 💡 提示按鈕（新手鷹架，v6）=====
+   🔴 位置：放喺選項按鈕下面（.opts 與 .fb 之間），唔放喺 .qtext 內部。
+   原因：.qtext 有 overflow-y:auto，第一版用 position:sticky 貼底 →
+         實測 1024×768 下按鈕顯示「已給 2 步」但提示框完全被按鈕蓋住，
+         學生撳完乜都睇唔到。移出滾動區就徹底避開。 */
+.hintrow{margin-top:7px;display:flex;align-items:center;gap:8px}
+.hintbtn{background:#fef3c7;border:2px solid #f59e0b;color:#92400e;font-family:inherit;
+  font-size:13px;font-weight:900;border-radius:99px;padding:5px 15px;cursor:pointer;
+  box-shadow:0 2px 0 #d97706;transition:transform .12s,box-shadow .12s;white-space:nowrap}
+.hintbtn:hover{background:#fde68a}
+.hintbtn:active{transform:translateY(2px);box-shadow:0 0 0 #d97706}
+.hintbtn.done{background:#e5e7eb;border-color:#9ca3af;color:#6b7280;
+  box-shadow:0 2px 0 #9ca3af;cursor:default}
+.hintcnt{font-size:11.5px;font-weight:800;color:#a16207}
+.hintbox{display:none;margin-top:6px;background:#fffbeb;border-left:4px solid #f59e0b;
+  border-radius:8px;padding:8px 11px;font-size:13px;line-height:1.6;color:#78350f;font-weight:700}
+.hintbox.on{display:block;animation:hintIn .22s ease}
+@keyframes hintIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.hintbox .hs{display:block;margin-bottom:4px}
+.hintbox .hs:last-child{margin-bottom:0}
+@media(max-height:620px){
+  .hintrow{margin-top:5px}
+  .hintbtn{font-size:12px;padding:4px 12px}
+  .hintbox{font-size:12px;line-height:1.5;padding:6px 9px}
 }
 </style>
 
@@ -2256,8 +2290,8 @@ window.Stage3D = Stage3D;
   <div class="ctl">
     <div class="ctl-lbl" style="margin-top:6px">難度（低・中・高三層題目）</div>
     <div class="seg" id="diff-seg">
-      <button class="seg-btn" data-diff="easy">⭐ 低</button>
-      <button class="seg-btn on" data-diff="normal">⭐⭐ 中</button>
+      <button class="seg-btn on" data-diff="easy">⭐ 低</button>
+      <button class="seg-btn" data-diff="normal">⭐⭐ 中</button>
       <button class="seg-btn" data-diff="hard">⭐⭐⭐ 高</button>
     </div>
     <label class="ai-toggle"><input type="checkbox" id="ai-toggle"> 🤖 空缺位由 AI 偵探補上（預設關閉，不會自動作答）</label>
@@ -2530,7 +2564,7 @@ window.Sfx = Sfx;
 <script>
 /* ================= 遊戲核心：一人一題・即時制・組隊打同一位首領 ================= */
 /* 傷害因人數調整：單人基準・雙人攻擊加強・三人單擊減弱（靠合擊技「真相大白」輸出） */
-const CFG = { hpMax:3, dmgBase:[0,20,25,14], dmgCombo:[0,5,6,3], dmgUlt:75, comboDmg:80, bossAtk:1, timeoutPenalty:1, healCombo:1, bossUltDmg:2, bossUltWrong:2, gameSeconds:480, qSeconds:60, speedBase:4, speedMax:40 };
+const CFG = { hpMax:4, dmgBase:[0,20,25,14], dmgCombo:[0,5,6,3], dmgUlt:75, comboDmg:80, bossAtk:1, timeoutPenalty:1, healCombo:1, bossUltDmg:2, bossUltWrong:2, gameSeconds:480, qSeconds:60, speedBase:4, speedMax:40 };
 const PHASES = [
   {name:"第一階段 · 謎霧小妖", img:"boss1", lv:25},
   {name:"第二階段 · 謊言狸貓", img:"boss2", lv:35},
@@ -2675,7 +2709,7 @@ const Game = {
         </div>
         <div class="qtext" id="qt-${i}"></div>
         <div class="opts" id="qo-${i}"></div>
-        <div class="fb" id="fb-${i}"></div><div class="card-solution" id="solution-${i}" aria-live="polite"><div class="solution-title">解題回顧</div><div class="solution-body" id="solution-body-${i}"></div><button class="solution-next" type="button" onclick="Game.closeSolution(${i})">看懂了，下一題</button></div>`;
+        <div class="fb" id="fb-${i}"></div><div id="hintwrap-${i}"></div><div class="card-solution" id="solution-${i}" aria-live="polite"><div class="solution-title">解題回顧</div><div class="solution-body" id="solution-body-${i}"></div><button class="solution-next" type="button" onclick="Game.closeSolution(${i})">看懂了，下一題</button></div>`;
       row.appendChild(c);
     });
   },
@@ -2696,7 +2730,10 @@ const Game = {
     const src = this.qtype==="expr" ? QUESTIONS.filter(q=>q.exprs && q.exprs.length===4) : QUESTIONS;
     const bag=[];
     for(const s of stages){
-      const _all = src.filter(q=>q.stage===s && (q.lv||2)===lvOf);
+      /* 🔴 v6 新手白名單：lv1 只出配對題(T3)＋一句真話找犯人(T1a) */
+      const _EASYK = ['T3','T1a'];
+      const _all = src.filter(q=>q.stage===s && (q.lv||2)===lvOf
+        && (lvOf>1 || _EASYK.indexOf(q.kind)>=0));
       const _shuf = a=>{ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
       /* 線索 ≤3 條的排前面 → 前期題目短、易讀；4 條的排後面，等學生熱咗身先出 */
       const _short = _shuf(_all.filter(q=>(q.clues||[]).length<=3)).map(q=>({q}));
@@ -2736,7 +2773,14 @@ const Game = {
     if(!this.running || !this.activeSet.has(pi)) return;
     this.cancel(this.perTimer[pi]);
     /* perRight 不在此重置：代表「本輪已答對」，全隊皆對即合擊；答錯／超時先至清零 */
-    const q = this.drawQ();
+    let q = this.drawQ();
+    /* 🔴 v6：避開隊友手上未答嘅題（最多再抽 5 次，唔會死循環） */
+    for(let _t=0;_t<5;_t++){
+      let _dup=false;
+      this.activeSet.forEach(_i=>{ if(_i!==pi && this.perQ[_i]===q) _dup=true; });
+      if(!_dup) break;
+      q = this.drawQ();
+    }
     this.perQ[pi] = q;
     this.perLocked[pi] = false;
     const order=[0,1,2,3];
@@ -2772,6 +2816,11 @@ const Game = {
       qHtml = q.q;
     }
     document.getElementById("qt-"+pi).innerHTML = qHtml;
+    const _hw = document.getElementById("hintwrap-"+pi);
+    if(_hw) _hw.innerHTML = this.hintHtml(pi);
+    /* 換題：提示收返，卡片高度還原 */
+    const _cd = document.getElementById("card-"+pi);
+    if(_cd) _cd.classList.remove('hinting');
     const box = document.getElementById("qo-"+pi);
     box.innerHTML = "";
     const KL = ["A","B","C","D"];
@@ -3298,6 +3347,66 @@ window.Game = Game; window.Scaffold = Scaffold; window.Human = Human;
     const arr=(q&&q.steps&&q.steps.length)?q.steps:[(q&&q.sol)||'睇吓解析'];
     return '<div class="sol-steps"><div class="sol-h">解題步驟</div>'+arr.map(function(s){return '<div class="sol-step">'+s+'</div>';}).join('')+'</div>';
   };
+  /* 💡 提示：新手鷹架。用題庫已有的 steps，一次只放一步 —— 唔會一次過睇光答案。
+     第①步通常係「先畫一個 3×3 表格，左邊放人名、上面放樂器」呢類方法示範，
+     正正係剛開始學邏輯推理最需要的一步。最多放 2 步，之後按鈕變灰。 */
+  Game.hintHtml=function(pi){
+    return '<div class="hintrow"><button class="hintbtn" type="button" '
+         + 'data-hint="'+pi+'" data-n="0">💡 提示</button>'
+         + '<span class="hintcnt" id="hc-'+pi+'"></span></div>'
+         + '<div class="hintbox" id="qh-'+pi+'"></div>';
+  };
+  Game.hintOnce=function(pi){
+    const q = this.perQ[pi]; if(!q) return;
+    const b = document.querySelector('.hintbtn[data-hint="'+pi+'"]');
+    if(!b || b.classList.contains('done')) return;
+    const steps = (q.steps && q.steps.length) ? q.steps : [(q.sol||'')];
+    const box = document.getElementById('qh-'+pi);
+    const cnt = document.getElementById('hc-'+pi);
+    if(!box) return;
+    let n = (+b.getAttribute('data-n')) || 0;
+    if(n >= steps.length) return;
+    n++;
+    b.setAttribute('data-n', n);
+    box.classList.add('on');
+    box.innerHTML = steps.slice(0, n).map(function(s){
+      return '<span class="hs">'+s+'</span>';
+    }).join('');
+    const cap = Math.min(2, steps.length);
+    if(cnt) cnt.textContent = n + ' / ' + cap + ' 步';
+    /* 展開提示時卡片長高（.hinting），騰返空間俾題目區 ——
+       否則加咗提示按鈕會擠走線索。然後如果提示框仍落到卡外，卡內滾一下。 */
+    try{
+      const card = document.getElementById('card-'+pi);
+      if(card){
+        card.classList.add('hinting');
+        const cr = box.getBoundingClientRect(), pr = card.getBoundingClientRect();
+        if(cr.bottom > pr.bottom - 4) card.scrollTop += (cr.bottom - pr.bottom) + 8;
+      }
+    }catch(e){}
+    if(n >= cap){
+      b.classList.add('done');
+      b.textContent = '💡 提示已給 ' + cap + ' 步';
+    } else {
+      b.textContent = '💡 再看一步';
+    }
+  };
+  /* 事件委託：卡片內容每次 renderCard 都重建，所以綁喺唔會重建嘅 #quiz-row 上。
+     唔用 onclick（修煉島鐵律：一律用 data-* ＋委託）。 */
+  (function(){
+    const row = document.getElementById('quiz-row');
+    if(!row || row.__hintBound) return;
+    row.__hintBound = true;
+    row.addEventListener('click', function(e){
+      const t = e.target;
+      const b = (t && t.closest) ? t.closest('.hintbtn') : null;
+      if(!b) return;
+      e.preventDefault(); e.stopPropagation();
+      const pi = +b.getAttribute('data-hint');
+      if(!Game.running || Game.perLocked[pi]) return;
+      Game.hintOnce(pi);
+    });
+  })();
   Game.popCombo=function(pi){
     if(OC.reduceMotion) return;
     const c=this.combo[pi]||0; this.maxCombo=Math.max(this.maxCombo||0,c);
@@ -3437,6 +3546,9 @@ document.querySelectorAll(".seg-btn").forEach(b=>{
 
 addEventListener("error", e=>{
   console.error(e);
+  /* 🔴 v6 修：ResizeObserver loop 係瀏覽器嘅良性通知（觀察回調內改咗尺寸），
+     唔係真錯誤。原本一律彈 err-screen → 撳提示／換題時誤報「對戰暫時出現問題」。 */
+  if(e && /ResizeObserver loop/i.test(e.message || "")) return;
   document.getElementById("err-screen").style.display="flex";
 });
 </script>
