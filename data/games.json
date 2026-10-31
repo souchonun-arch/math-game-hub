@@ -1,7 +1,7 @@
 {
-  "updated": "2026-10-31 11:28",
+  "updated": "2026-10-31 11:37",
   "count": 14,
-  "totalBytes": 61950995,
+  "totalBytes": 61946744,
   "newDays": 30,
   "games": [
     {
@@ -105,13 +105,13 @@
       "titleFromHtml": "邏輯偵探社・思維對戰",
       "topic": "未分類",
       "keywords": [],
-      "bytes": 9816187,
-      "totalBytes": 9816187,
+      "bytes": 9811936,
+      "totalBytes": 9811936,
       "sizeText": "9.4 MB",
       "wifi": "heavy",
       "depCount": 0,
       "needsNetwork": false,
-      "sha256": "26c5346a21553b54fdecf2f6afb3e112e7433273ecd8668c2a7330a76963d03c",
+      "sha256": "348b40ad3d2b070cbe2f5f5781c60a37e8584eacd555d0c6e133c06b76f2eb37",
       "source": "六數學思維/邏輯偵探社・思維對戰.html",
       "entry": "games/challenge/logic-detective/",
       "file": "play.html",
