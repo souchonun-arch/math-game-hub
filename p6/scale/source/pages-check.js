@@ -92,22 +92,26 @@ const server = http.createServer((req, res) => {
   });
   await wait(1500);
   const lv = await page.evaluate(() => BZ.ST.diag.level);
-  ok(lv === 3, "8 題診斷完成並分層（本次 ★★★）");
+  ok(lv === 3, "5 題診斷完成並分層（本次 ★★★）");
   const dg = await page.evaluate(() => ({ score: BZ.ST.diag.score, max: BZ.ST.diag.max,
                                            right: BZ.ST.diag.right, n: BZ.DIAG.length }));
-  ok(dg.n === 8 && dg.score === 15 && dg.max === 15 && dg.right === 8,
-    "加權分層：8 題全對得 15 / 15 分（不再只有「全對／非全對」）");
+  ok(dg.n === 5 && dg.score === 9 && dg.max === 9 && dg.right === 5,
+    "加權分層：5 題全對得 9 / 9 分（不再只有「全對／非全對」）");
   await page.evaluate(() => BZ.go("practice"));
   await wait(300);
   ok(await page.evaluate(() =>
     document.querySelectorAll(".match-grid .match-box").length === 4 &&
-    /今日只派 8 題/.test(document.body.textContent)), "練習頁顯示本層配對表（4 格、今日只派 8 題）");
+    /今日只派 4 題出門票/.test(document.body.textContent)), "練習頁顯示本層配對表（4 格、今日只派 4 題出門票）");
   await page.evaluate(() => BZ.UI.open("steps"));
   await wait(250);
-  ok(await page.evaluate(() => !!document.querySelector("#mBody .sc-item .sc-src") &&
-    /教材依據/.test(document.getElementById("mBody").textContent)), "HTTP 環境下逐題教材依據正常顯示");
-  ok(await page.evaluate(() => document.querySelectorAll("#mBody .sc-item .figsvg").length === 4),
-    "HTTP 環境下本層 4 題分步像素圖解皆正常顯示");
+  ok(await page.evaluate(() => !!document.querySelector("#mBody .sc-src") &&
+    /參考示範/.test(document.getElementById("mBody").textContent)),
+    "HTTP 環境下分步示範頁顯示教材依據與參考示範");
+  await page.evaluate(() => BZ.UI.open("exit"));
+  await wait(250);
+  ok(await page.evaluate(() => document.querySelectorAll("#mBody .sc-item").length === 4 &&
+    !!document.querySelector("#mBody .sc-item .sc-src")),
+    "HTTP 環境下本層 4 題出門票與逐題教材依據皆正常顯示");
 
   console.log("\n【3】學生報告與 PNG 圖片");
   await page.evaluate(() => BZ.UI.open("report"));
@@ -130,7 +134,7 @@ const server = http.createServer((req, res) => {
   await page.evaluate(() => BZ.UI.open("sources"));
   await wait(250);
   ok(await page.evaluate(() => /教材依據一覽/.test(document.getElementById("mBody").textContent) &&
-    document.querySelectorAll("#mBody table tr").length === 25), "老師可開啟逐題教材依據對照表（25 列）");
+    document.querySelectorAll("#mBody table tr").length === 31), "老師可開啟逐題教材依據對照表（31 列）");
   ok(await page.evaluate(() => !/正比例|反比例|體積|求實際距離|求圖上距離|第14課/.test(document.body.textContent)),
     "全班版沒有混入後續章節概念");
 

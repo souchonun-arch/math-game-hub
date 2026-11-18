@@ -69,22 +69,22 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   await wait(400);
   await page.screenshot({ path: OUT + "/scale-2-practice.png", fullPage: true });
 
-  /* 分步列式：本層 4 題＋教材依據 */
+  /* 分步列式：本層 4 題參考示範＋教材依據 */
   await page.evaluate(() => BZ.UI.open("steps"));
   await wait(500);
   await page.screenshot({ path: OUT + "/scale-3-steps.png" });
   const srcInfo = await page.evaluate(() => {
-    const el = document.querySelector("#mBody .sc-item .sc-src");
+    const el = document.querySelector("#mBody .sc-src");
     if (!el) return { exists: false };
     const r = el.getBoundingClientRect();
     return { exists: true, width: Math.round(r.width), height: Math.round(r.height), text: el.textContent.slice(0, 40) };
   });
   console.log("教材依據列：", JSON.stringify(srcInfo));
 
-  /* 答錯 → 一次鎖定＋提示自動出現 */
+  /* 答錯 → 一次鎖定＋提示自動出現（改用出門票驗證） */
   await page.evaluate(() => {
     BZ.UI.close();
-    BZ.UI.open("steps");
+    BZ.UI.open("exit");
     const it = document.querySelector("#mBody .sc-item");
     it.querySelector(".sc-in").value = "999";
     it.querySelector('[data-act="check"]').click();
@@ -143,9 +143,9 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
     wrongBook: BZ.ST.wrongBook.length,
     redoCount: BZ.summary().redoCount,
     pixEnabled: window.PIX.enabled,
-    stepLocked: (() => {
-      const i = BZ.activeIds("steps")[0];
-      return !!(BZ.ST.steps[i] && BZ.ST.steps[i].locked);
+    exitLocked: (() => {
+      const i = BZ.activeIds("exit")[0];
+      return !!(BZ.ST.exit[i] && BZ.ST.exit[i].locked);
     })(),
     cardDataUrlLen: (document.querySelector("#cardImg") || {}).src ? document.querySelector("#cardImg").src.length : 0,
     downloadName: (document.querySelector("#cardDl") || {}).getAttribute

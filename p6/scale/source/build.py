@@ -387,7 +387,7 @@ PIXDOM = r'''<body>
 <canvas id="pixFx" aria-hidden="true"></canvas>
 <div id="pixBuddy" aria-hidden="true">
   <canvas id="pixBuddyCv" width="64" height="64"></canvas>
-  <div id="pixBuddySay">尺尺：請先完成 8 題分層診斷。</div>
+  <div id="pixBuddySay">尺尺：請先完成 5 題分層診斷。</div>
 </div>
 
 <nav class="navbar">'''
@@ -524,33 +524,27 @@ const CFG = {
   story:  "像素王國要繪製一張校園地圖。製圖精靈「尺尺」說：圖上的 1 格，代表真正的 25 格。只要寫出「圖上距離 : 實際距離」，就能把整座王國收進地圖裡。請你先找出這張地圖的比例尺。",
   key:    "比例尺 ＝ 圖上距離 : 實際距離（先統一單位，再化成前項為 1 的最簡整數比）",
   standard: "澳門基本學力 B-2-15：認識比例尺，並能用比例尺解決實際問題。",
-  encyc:  "數學小百科：比例尺 10 : 1 的前項大於後項，表示圖上距離是實際距離的 10 倍，屬於放大比例尺，常用於繪製鐘錶零件等細小物件的設計圖；地圖的比例尺則多為 1 : n 的縮小比例尺。",
-  minutes: 20,
+  encyc:  "數學小百科：比例尺 10 : 1 的前項大於後項，表示圖上距離是實際距離的 10 倍，屬放大比例尺，常用於繪製細小零件；地圖則多為 1 : n 的縮小比例尺。",
+  minutes: 15,
   demo:   { map:1, real:25 },
   hero:   { t:"meaning", map:1, real:25, cap:"像素校園：圖上 1 格代表實際 25 格" },
   colors: { primary:"#E14B3C", secondary:"#2E5CA8", accent:"#F5B731", bg:"#F3EFE1" }
 };
 
-/* 分層診斷：8 題（★3／★★3／★★★2），依難度配分 1／2／3 分，滿分 15 分。
+/* 分層診斷：5 題（★2／★★2／★★★1），依難度配分 1／2／3 分，滿分 9 分。
    測的是本課前置能力（比的化簡、單位換算、前項化為 1），不是本課新知。
-   加權得分讓同一層級內仍能看出程度差異，不再全部擠在滿分。 */
+   加權得分讓同一層級內仍能看出程度差異；每題只作答一次，答錯不補答，診斷不可重做。 */
 const DIAG = [
   { s:"比的化簡", d:1, t:"化簡比 12 : 18 ＝ 2 : （　）", a:["3"], sec:25,
     exp:"12 : 18 同除以 6 → 2 : 3", src:"《澳門新思維數學》第2課 比的性質（本課前置知識）" },
   { s:"單位換算", d:1, t:"3 米 ＝ （　）厘米", a:["300"], sec:25,
     exp:"1 米 ＝ 100 厘米，3 米 ＝ 300 厘米", src:"長度單位換算（本課前置知識）" },
-  { s:"單位換算", d:1, t:"1 cm ＝ （　）mm", a:["10"], sec:20,
-    exp:"1 cm ＝ 10 mm", src:"長度單位換算（本課前置知識）" },
   { s:"單位換算", d:2, t:"1 km ＝ （　）厘米", a:["100000"], sec:30,
     exp:"1 km ＝ 1000 m ＝ 100 000 cm", src:"課本 p.52 附加例題 1（前置：米與千米化為厘米）" },
   { s:"前項化為 1", d:2, t:"化簡比 25 : 4000 ＝ 1 : （　）", a:["160"], sec:40,
     exp:"25 : 4000 同除以 25 → 1 : 160", src:"課本 p.52 第13課第2題附加例題 3(a)（前置化簡）" },
-  { s:"單位換算", d:2, t:"7.5 dm ＝ （　）mm", a:["750"], sec:35,
-    exp:"1 dm ＝ 100 mm，7.5 dm ＝ 750 mm", src:"《澳門新思維數學習作》練習13 第40題（前置換算）" },
   { s:"前項化為 1", d:3, t:"把 1.1 : 36 300 化成前項是 1 的比，即 1 : （　）", a:["33000"], sec:50,
-    exp:"1.1 : 36 300 同除以 1.1 → 1 : 33 000", src:"自編補充工作紙冊 第13課 計算題 2（前置化簡）" },
-  { s:"前項化為 1", d:3, t:"化簡比 4.5 : 9000 ＝ 1 : （　）", a:["2000"], sec:45,
-    exp:"4.5 : 9000 同除以 4.5 → 1 : 2000", src:"課本 p.52 第13課第2題附加例題 2（前置化簡）" }
+    exp:"1.1 : 36 300 同除以 1.1 → 1 : 33 000", src:"自編補充工作紙冊 第13課 計算題 2（前置化簡）" }
 ];
 
 const DATA = {
@@ -712,7 +706,7 @@ const DATA = {
       redo:{ t:"設計圖上 7.5 dm 代表實際 15 mm，正確的比例尺是 （　） : 1", a:["50"],
              exp:"750 : 15 ＝ 50 : 1" } }
   ],
-  /* 出門票：★／★★／★★★ 各 2 題，與本層主題一致 */
+  /* 出門票：★／★★／★★★ 各 4 題，每層派 4 題，與本層主題一致 */
   exit: [
     { d:1, sec:70, src:"《澳門新思維數學習作》練習13 第1題（表格 5 cm : 125 cm）",
       t:"地圖上 5 cm 代表實際 125 cm，這幅地圖的比例尺是 1 : （　）", a:["25"],
@@ -724,6 +718,16 @@ const DATA = {
       exp:"2 : 40 同除以 2 → 1 : 20。",
       redo:{ t:"地圖上 3 cm 代表實際 60 cm，比例尺是 1 : （　）", a:["20"],
              exp:"3 : 60 ＝ 1 : 20" } },
+    { d:1, sec:70, src:"《澳門新思維數學習作》練習13 第1題表格變式（更換數字）",
+      t:"地圖上 3 cm 代表實際 45 cm，這幅地圖的比例尺是 1 : （　）", a:["15"],
+      exp:"3 : 45 同除以 3 → 1 : 15。",
+      redo:{ t:"地圖上 6 cm 代表實際 90 cm，比例尺是 1 : （　）", a:["15"],
+             exp:"6 : 90 ＝ 1 : 15" } },
+    { d:1, sec:75, src:"《澳門新思維數學習作》練習13 第1題表格變式（更換數字）",
+      t:"地圖上 4 cm 代表實際 120 cm，這幅地圖的比例尺是 1 : （　）", a:["30"],
+      exp:"4 : 120 同除以 4 → 1 : 30。",
+      redo:{ t:"地圖上 2 cm 代表實際 60 cm，比例尺是 1 : （　）", a:["30"],
+             exp:"2 : 60 ＝ 1 : 30" } },
     { d:2, sec:105, src:"課本 p.52 第13課第2題附加例題 2（草地 90 米／圖上 4.5 厘米）",
       t:"草地實際長 90 米，圖上量得 4.5 cm，這幅圖的比例尺是 1 : （　）", a:["2000"],
       exp:"90 m ＝ 9000 cm；4.5 : 9000 ＝ 1 : 2000。",
@@ -734,6 +738,16 @@ const DATA = {
       exp:"950 km ＝ 95 000 000 cm；19 : 95 000 000 ＝ 1 : 5 000 000。",
       redo:{ t:"兩地實際距離 380 千米，圖上距離 19 cm，比例尺是 1 : （　）", a:["2000000"],
              exp:"380 km ＝ 38 000 000 cm；19 : 38 000 000 ＝ 1 : 2 000 000" } },
+    { d:2, sec:105, src:"課本 p.52 第13課第2題附加例題 1（水池 24 米／圖上 5 厘米）",
+      t:"水池實際邊長 24 米，圖上邊長 5 cm，這幅圖的比例尺是 1 : （　）", a:["480"],
+      exp:"24 m ＝ 2400 cm；5 : 2400 ＝ 1 : 480。",
+      redo:{ t:"草地實際長 48 米，圖上長 10 cm，比例尺是 1 : （　）", a:["480"],
+             exp:"48 m ＝ 4800 cm；10 : 4800 ＝ 1 : 480" } },
+    { d:2, sec:105, src:"課本 p.52 第13課第2題附加例題 3(b)（草地 90 米／圖上 12 厘米）",
+      t:"草地實際長 90 米，圖上長 12 cm，這幅圖的比例尺是 1 : （　）", a:["750"],
+      exp:"90 m ＝ 9000 cm；12 : 9000 ＝ 1 : 750。",
+      redo:{ t:"跑道實際長 45 米，圖上長 6 cm，比例尺是 1 : （　）", a:["750"],
+             exp:"45 m ＝ 4500 cm；6 : 4500 ＝ 1 : 750" } },
     { d:3, sec:135, src:"《澳門新思維數學習作》練習13 第42題（零件邊長 8 mm／圖上 2.4 cm）",
       t:"零件實際邊長 8 mm，設計圖上邊長 2.4 cm，這幅設計圖的比例尺是 （　） : 1", a:["3"],
       exp:"2.4 cm ＝ 24 mm；24 : 8 ＝ 3 : 1，屬放大比例尺。",
@@ -743,35 +757,45 @@ const DATA = {
       t:"線段比例尺每格 1 cm 代表 100 km，寫成數值比例尺是 1 : （　）", a:["10000000"],
       exp:"100 km ＝ 10 000 000 cm，所以 1 : 10 000 000。",
       redo:{ t:"線段比例尺每格 1 cm 代表 250 km，寫成數值比例尺是 1 : （　）", a:["25000000"],
-             exp:"250 km ＝ 25 000 000 cm → 1 : 25 000 000" } }
+             exp:"250 km ＝ 25 000 000 cm → 1 : 25 000 000" } },
+    { d:3, sec:140, src:"《澳門新思維數學習作》練習13 第40題（7.5 dm 代表 15 mm）",
+      t:"設計圖上 7.5 dm 代表實際 15 mm，這張設計圖的比例尺是 （　） : 1", a:["50"],
+      exp:"7.5 dm ＝ 750 mm；750 : 15 ＝ 50 : 1，屬放大比例尺。",
+      redo:{ t:"設計圖上 5 cm 代表實際 2.5 mm，比例尺是 （　） : 1", a:["20"],
+             exp:"5 cm ＝ 50 mm；50 : 2.5 ＝ 20 : 1" } },
+    { d:3, sec:135, src:"工作紙 24.png 第⑦題變式（每格代表 200 m）",
+      t:"線段比例尺每格 1 cm 代表 200 m，寫成數值比例尺是 1 : （　）", a:["20000"],
+      exp:"200 m ＝ 20 000 cm，所以 1 : 20 000。",
+      redo:{ t:"線段比例尺每格 1 cm 代表 500 m，寫成數值比例尺是 1 : （　）", a:["50000"],
+             exp:"500 m ＝ 50 000 cm → 1 : 50 000" } }
   ]
 };
 
+
 /* ═══ 本層主題鏈 ═══
-   每層只派 8 題：分步 4 題＋錯例 2 題＋出門票 2 題，全部為本層難度、同一概念主題。
-   其餘 16 題收進「解題鏈一覽」，僅供參考，不必作答。 */
+   每層只派 4 題出門票；分步列式與錯例醫院改為「參考示範、不必作答」。
+   PLAN.steps／PLAN.clinic 保留為本層示範題索引，不計入作答量。 */
 const PLAN = {
-  1:{ topic:"比例尺的意義：圖上距離 : 實際距離", steps:[0,1,2,3], clinic:[0,1], exit:[0,1],
+  1:{ topic:"比例尺的意義：圖上距離 : 實際距離", steps:[0,1,2,3], clinic:[0,1], exit:[0,1,2,3],
       focus:"辨認前項是圖上距離、後項是實際距離；單位相同時直接化成前項為 1 的比" },
-  2:{ topic:"先統一單位，再求比例尺", steps:[4,5,6,7], clinic:[2,3], exit:[2,3],
+  2:{ topic:"先統一單位，再求比例尺", steps:[4,5,6,7], clinic:[2,3], exit:[4,5,6,7],
       focus:"把米或千米化成厘米，寫出「圖上 : 實際」並化簡為 1 : n" },
-  3:{ topic:"線段比例尺與放大比例尺", steps:[8,9,10,11], clinic:[4,5], exit:[4,5],
-      focus:"由線段比例尺讀出每格代表的距離並換算；辨認 10 : 1 放大比例尺" }
+  3:{ topic:"線段比例尺與放大比例尺", steps:[8,9,10,11], clinic:[4,5], exit:[8,9,10,11],
+      focus:"讀出每格距離並換算；辨認 10 : 1 放大比例尺" }
 };
 function planOf(){ return PLAN[lv()] || PLAN[2]; }
 function activeIds(stage){
-  const arr = stage==="steps"?DATA.steps : stage==="clinic"?DATA.clinic
-            : stage==="exit"?DATA.exit : [];
+  /* 只派出門票；分步與錯例為參考示範，不產生作答題 */
+  if(stage!=="exit") return [];
+  const arr=DATA.exit;
   if(ST.all) return arr.map(function(_,i){return i;});
-  const P=planOf();
-  const picks = stage==="steps"?P.steps : stage==="clinic"?P.clinic : P.exit;
-  return picks.slice();
+  return planOf().exit.slice();
 }
 function statPlan(stage){ return stat(stage, DATA[stage], activeIds(stage)); }
 
 /* 徽章 */
 const BADGES = [
-  { id:"diag",    i:"🧭", t:"分層完成",   d:"完成 8 題分層診斷" },
+  { id:"diag",    i:"🧭", t:"分層完成",   d:"完成 5 題分層診斷" },
   { id:"first",   i:"🌱", t:"第一步",     d:"答對第一題" },
   { id:"combo3",  i:"🔥", t:"三連擊",     d:"連續答對 3 題" },
   { id:"perfect", i:"💎", t:"完美一步",   d:"一個步驟全對、沒有查看提示" },
@@ -842,7 +866,7 @@ seg("function afterDone(stage){", "/* ---------- 換頁 ---------- */", r'''func
 # 6. 狀態：加 wrongBook / redo / who
 # ══════════════════════════════════════════════════════════════════════
 seg("function fresh(){", "function save(){", r'''function fresh(){
-  return { diag:{done:false,score:0,max:15,right:0,baseOk:0,level:0}, derive:{}, steps:{}, clinic:{}, exit:{}, redo:{},
+  return { diag:{done:false,score:0,max:9,right:0,baseOk:0,level:0}, derive:{}, steps:{}, clinic:{}, exit:{}, redo:{},
            tried:{}, all:false, badges:[], xp:0, combo:0, best:0, t0:Date.now(), shown:false,
            wrongBook:[], who:"" };
 }''', "fresh")
@@ -1128,7 +1152,7 @@ seg("function renderItem(item, stage, idx, forceDo){", "function norm(s){", r'''
     fig+
     (item.src?'<div class="sc-src">📖 教材依據：'+esc(item.src)+'</div>':'')+
     '<div class="sc-mute">'+(demo?'👀 此步驟不屬於你的層級，答案已<b>預先填妥</b>作為示範':'')+'</div>'+
-    '<div class="sc-hint" id="hint'+stage+idx+'">💡 '+esc(item.hint||"")+'</div>'+
+    '<div class="sc-hint" id="hint'+stage+idx+'">💡 '+esc(item.hint||item.exp||"")+'</div>'+
     (demo?'':'<div class="hint-lock">🔒 提示會在答錯後自動出現；作答前不能查看</div>')+
     '<div class="sc-fb" id="fb'+stage+idx+'"></div>'+
     '<div class="sc-btns">'+
@@ -1183,7 +1207,7 @@ seg("function renderItem(item, stage, idx, forceDo){", "function norm(s){", r'''
     const parts=(rec.mine||"").split("、");
     Array.prototype.forEach.call(inputs,function(inp,i){ inp.value=parts[i]||""; });
     disableAll();
-    if(item.hint) hintEl.classList.add("on");
+    if(item.hint||item.exp) hintEl.classList.add("on");
     wrongView(true);
   }
 
@@ -1211,7 +1235,7 @@ seg("function renderItem(item, stage, idx, forceDo){", "function norm(s){", r'''
       rec.wrong=1;
       wrongView(true);
       /* 提示只在答錯之後自動出現，學生不能自行按下 */
-      if(item.hint){
+      if(item.hint||item.exp){
         hintEl.classList.add("on");
         rec.hints=1; ST.hints=(ST.hints||0)+1;
       }
@@ -1237,41 +1261,26 @@ seg("function renderItem(item, stage, idx, forceDo){", "function norm(s){", r'''
 # ══════════════════════════════════════════════════════════════════════
 seg("function buildSteps(){", "function buildDerive(){", r'''function buildSteps(){
   const box=document.createElement("div");
-  const ids=activeIds("steps");
-  const secs=ids.reduce(function(s,i){return s+(DATA.steps[i].sec||60);},0);
   const L=LV[lv()], P=planOf();
-  box.innerHTML='<div class="sc-plan-bar">🎯 你是 <b>'+L.s+' '+L.n+'</b>　→　本層主題：<b>'+esc(P.topic)+
-    '</b><br>今日只派 <b>'+ids.length+' 題</b>（第 '+
-    ids.map(function(i){return i+1;}).join("、")+' 題，約 '+Math.round(secs/60*10)/10+
-    ' 分鐘）。其他層級的題目收在下方「解題鏈一覽」，<b>不必作答</b>。'+
-    '<div class="sc-btns" style="margin-top:8px">'+
-      (ST.all
-        ? '<button class="btn btn-ghost btn-sm sc-trymore" data-act="back">🎯 回到本層模式</button>'
-        : '<button class="btn btn-ghost btn-sm sc-trymore" data-act="all">📚 願意挑戰：加做其他層級</button>')+
-    '</div></div>';
-  const btn=box.querySelector(".sc-trymore");
-  if(btn) btn.onclick=function(){
-    if(btn.dataset.act==="all"){ ST.all=true; DATA.steps.forEach((_,i)=>ST.tried["steps"+i]=true); toast("📚 已加開所有層級的題目"); grant("all"); }
-    else { ST.all=false; DATA.steps.forEach((_,i)=>delete ST.tried["steps"+i]); toast("🎯 回到本層模式"); }
-    save(); UI.open("steps");
-  };
-  ids.forEach(function(i){ box.appendChild(renderItem(DATA.steps[i],"steps",i,true)); });
-  /* 解題鏈一覽：只供參考，不計入作答量 */
-  if(!ST.all){
-    const rest=DATA.steps.map(function(_,i){return i;}).filter(function(i){return ids.indexOf(i)<0;});
-    let d='<details class="sc-chain"><summary>📚 解題鏈一覽（其他層級 '+rest.length+
-      ' 題，僅供參考，不必作答）</summary>'+
-      '<div class="chain-row">🎯 <b>本層訓練重點：</b>'+esc(P.focus)+'</div>';
-    rest.forEach(function(i){
-      const it=DATA.steps[i];
-      d+='<div class="chain-row"><b>第 '+(i+1)+' 題　'+stars(it.d||2)+'</b>　'+esc(it.t)+
-        '<br><span>答案：'+esc((it.a||[]).join("、"))+'　｜　'+esc(it.exp||"")+'</span>'+
-        (it.src?'<br><span>📖 教材依據：'+esc(it.src)+'</span>':'')+'</div>';
-    });
-    d+='</details>';
-    const tmp=document.createElement("div"); tmp.innerHTML=d;
-    box.appendChild(tmp.firstChild);
-  }
+  const ids=P.steps.slice();
+  let h='<p class="sc-intro">📚 <b>分步列式（參考示範）</b>　本階段改為老師示範，<b>不必作答</b>；今日只須完成 4 題出門票。</p>'+
+    '<div class="sc-plan-bar">🎯 你是 <b>'+L.s+' '+L.n+'</b>　→　本層主題：<b>'+esc(P.topic)+
+    '</b>；以下 '+ids.length+' 題為本層解題鏈示範。</div>';
+  ids.forEach(function(i,n){
+    const it=DATA.steps[i];
+    h+='<div class="card" style="box-shadow:none;border:2px solid var(--ink);margin:0 0 10px">'+
+      '<div class="sc-q"><span class="sc-no">'+(n+1)+'</span>'+
+      '<span class="sc-lv sc-star sc-d'+(it.d||2)+'">'+stars(it.d||2)+'</span>'+
+      '<span class="sc-qtext">'+esc(it.t)+'</span>'+
+      (it.sec?'<span class="sc-sec">⏱ 約 '+it.sec+' 秒</span>':'')+'</div>'+
+      (it.src?'<div class="sc-src">📖 教材依據：'+esc(it.src)+'</div>':'')+
+      '<div class="concept-box">✅ <b>答案：</b>'+esc((it.a||[]).join("、"))+
+      '<br>💡 '+esc(it.exp||"")+'</div></div>';
+  });
+  h+='<div class="sc-btns" style="justify-content:center">'+
+     '<button class="btn btn-primary btn-sm" data-a="toexit">🚪 前往出門票</button></div>';
+  box.innerHTML=h;
+  box.querySelector('[data-a="toexit"]').onclick=function(){ UI.open("exit"); };
   return box;
 }
 ''', "buildSteps")
@@ -1279,93 +1288,25 @@ seg("function buildSteps(){", "function buildDerive(){", r'''function buildSteps
 seg("function buildClinic(){", "function buildExit(){", r'''function buildClinic(){
   const box=document.createElement("div");
   const L=LV[lv()], P=planOf();
-  const ids=activeIds("clinic");
-  box.innerHTML='<p class="sc-intro">🏥 <b>今日你做醫生！</b>　不必計算——<b>先觀察列式、再估計大小、最後找出錯誤</b>。能找出別人的錯誤，自己就不會犯同樣的錯誤。</p>'+
+  const ids=P.clinic.slice();
+  let h='<p class="sc-intro">🏥 <b>錯例醫院（參考示範）</b>　本階段改為老師示範，<b>不必作答</b>；讀一遍常見錯誤，出門票就不會踩同一個坑。</p>'+
     '<div class="sc-plan-bar">🎯 本層 <b>'+L.s+' '+L.n+'</b>　→　主題：<b>'+esc(P.topic)+
-    '</b>；今日只派 <b>'+ids.length+' 題</b>。判斷一次即鎖定，答錯會自動記入錯題本。</div>';
-  ids.forEach(function(idx,n){
-    const c=DATA.clinic[idx];
-    const key="c"+idx;
-    const rec=ST.clinic[key]||{think:false,size:null,sizeOk:false,done:false,wrong:0,locked:false};
-    ST.clinic[key]=rec;
-    const row=document.createElement("div");
-    row.className="sc-item";
-    row.innerHTML=
+    '</b>；以下 '+ids.length+' 題為本層常見錯例示範。</div>';
+  ids.forEach(function(i,n){
+    const c=DATA.clinic[i];
+    h+='<div class="card" style="box-shadow:none;border:2px solid var(--ink);margin:0 0 10px">'+
       '<div class="sc-q"><span class="sc-no">'+(n+1)+'</span>'+
       '<span class="sc-lv sc-star sc-d'+(c.d||2)+'">'+stars(c.d||2)+'</span>'+
       '<span class="sc-qtext">病人計算：<span class="wrong-expr">'+esc(c.w)+'</span></span>'+
       (c.sec?'<span class="sc-sec">⏱ 約 '+c.sec+' 秒</span>':'')+'</div>'+
       (c.src?'<div class="sc-src">📖 教材依據：'+esc(c.src)+'</div>':'')+
-      '<div class="clinic-pane p1'+(rec.think||rec.locked?'':' on')+'">'+
-        '<div class="clinic-go">第一步：先觀察他所寫的算式<br><button class="btn btn-primary btn-sm" data-a="go">👀 我已看完</button></div>'+
-      '</div>'+
-      '<div class="clinic-pane p2'+(rec.think||rec.locked?' on':'')+'">'+
-        '<div style="font-size:15px;margin-bottom:8px">第二步：不必計算，估計他所寫比例尺的<b>後項</b>會太大還是太小？</div>'+
-        '<button class="btn btn-ghost btn-sm" data-a="big">太大</button> '+
-        '<button class="btn btn-ghost btn-sm" data-a="small">太小</button>'+
-        '<div class="sc-fb" id="cfb'+n+'"></div>'+
-      '</div>'+
-      '<div class="clinic-pane p3'+(rec.sizeOk||rec.locked?' on':'')+'">'+
-        '<div style="font-size:15px;margin-bottom:8px">第三步：' + esc(c.q) + '</div>'+
-        '<div id="copts'+n+'"></div>'+
-        '<div class="sc-fb" id="cfb2_'+n+'"></div>'+
-      '</div>';
-    const p1=row.querySelector(".p1"),p2=row.querySelector(".p2"),p3=row.querySelector(".p3");
-    p1.querySelector('[data-a="go"]').onclick=function(){ rec.think=true; save(); p1.classList.remove("on"); p2.classList.add("on"); };
-    p2.querySelector('[data-a="big"]').onclick=function(){ judge("big"); };
-    p2.querySelector('[data-a="small"]').onclick=function(){ judge("small"); };
-    function judge(v){
-      if(rec.locked) return;
-      rec.size=v;
-      const right=c.size||null;
-      const fb=row.querySelector("#cfb"+n);
-      if(right===null || v===right){ rec.sizeOk=true; fb.className="sc-fb sc-ok"; fb.innerHTML="👍 估計正確！"; sndOk(); addXp(5); }
-      else { fb.className="sc-fb sc-no"; fb.innerHTML="🤔 再仔細觀察——留意單位換算會怎樣改變比例尺的後項。"; sndNo(); rec.sizeOk=true; }
-      p3.classList.add("on"); save();
-    }
-    const ob=row.querySelector("#copts"+n), fb2=row.querySelector("#cfb2_"+n);
-    c.opts.forEach(function(o,oi){
-      const b=document.createElement("button");
-      b.className="opt-btn"; b.textContent=(oi+1)+". "+o;
-      b.onclick=function(){
-        if(rec.locked) return;
-        rec.locked=true; rec.pick=oi;
-        row.querySelectorAll(".opt-btn").forEach(function(x){ x.disabled=true; });
-        if(oi===c.ans){
-          b.classList.add("right"); rec.done=true;
-          fb2.className="sc-fb sc-ok";
-          fb2.innerHTML="✅ 判斷正確！"+esc(c.exp||"");
-          sndOk(); addXp(10); grant("clinic"); save(); afterDone("clinic");
-        } else {
-          b.classList.add("wrong");
-          const right=row.querySelectorAll(".opt-btn")[c.ans];
-          if(right) right.classList.add("right");
-          rec.wrong=1;
-          fb2.className="sc-fb sc-no";
-          fb2.innerHTML="❌ 這題已記入錯題本，不能修改。正確選項是第 "+(c.ans+1)+" 項。<br>"+
-            '<span class="lock-exp">'+esc(c.exp||"")+'</span>'+
-            '<div class="sc-btns"><button class="btn btn-redo btn-sm" data-a="toredo">🔁 前往錯題重練</button></div>';
-          fb2.querySelector('[data-a="toredo"]').onclick=function(){ UI.open("redo"); };
-          recordWrong("clinic",idx,c,(oi+1)+". "+o);
-          sndNo(); breakCombo(); save();
-        }
-      };
-      if(rec.locked){
-        b.disabled=true;
-        if(oi===c.ans) b.classList.add("right");
-        else if(oi===rec.pick) b.classList.add("wrong");
-      }
-      ob.appendChild(b);
-    });
-    if(rec.done){ fb2.className="sc-fb sc-ok"; fb2.innerHTML="✅ 已完成　"+esc(c.exp||""); }
-    else if(rec.locked){
-      fb2.className="sc-fb sc-no";
-      fb2.innerHTML="❌ 此題已作答並記入錯題本，不能修改。<br><span class=\"lock-exp\">"+esc(c.exp||"")+"</span>";
-    }
-    if(rec.think||rec.locked){ p1.classList.remove("on"); p2.classList.add("on"); }
-    if(rec.sizeOk||rec.locked) p3.classList.add("on");
-    box.appendChild(row);
+      '<div class="concept-box">🔍 <b>'+esc(c.q)+'</b><br>✅ 正確答案：<b>第 '+(c.ans+1)+' 項</b>　'+
+      esc(c.opts[c.ans]||"")+'<br>💡 '+esc(c.exp||"")+'</div></div>';
   });
+  h+='<div class="sc-btns" style="justify-content:center">'+
+     '<button class="btn btn-primary btn-sm" data-a="toexit">🚪 前往出門票</button></div>';
+  box.innerHTML=h;
+  box.querySelector('[data-a="toexit"]').onclick=function(){ UI.open("exit"); };
   return box;
 }
 ''', "buildClinic")
@@ -1377,7 +1318,7 @@ seg("function buildExit(){", "function buildHomework(){", r'''function buildExit
   const secs=ids.reduce(function(s,i){return s+(DATA.exit[i].sec||90);},0);
   box.innerHTML='<p class="sc-intro">🚪 <b>今日最後一關。</b>　完成後會自動出現「📋 今日總結」，可在總結卡產生報告圖片繳交給老師。</p>'+
     '<div class="sc-plan-bar">🎯 你是 <b>'+L.s+' '+L.n+'</b>　→　本層主題：<b>'+esc(P.topic)+
-    '</b>；只派 <b>'+ids.length+' 題</b>（約 '+Math.round(secs/60*10)/10+' 分鐘）。'+L.tip+'</div>';
+    '</b>；只派 <b>'+ids.length+' 題</b>（約 '+Math.round(secs/60*10)/10+' 分鐘）。<br>'+L.tip+'</div>';
   ids.forEach(function(i){ box.appendChild(renderItem(DATA.exit[i],"exit",i,true)); });
   return box;
 }
@@ -1428,8 +1369,8 @@ seg("function buildSummary(){", "/* ---------- 老師專用（完整報告／進
   const nredo=redoCount();
   box.innerHTML=
     '<div class="sum-grid">'+
-    '<div class="sum-box"><div class="k">② 分步列式</div><div class="v">'+s1.done+'<small>/'+s1.total+'</small></div></div>'+
-    '<div class="sum-box"><div class="k">③ 錯例醫院</div><div class="v">'+s3.done+'<small>/'+s3.total+'</small></div></div>'+
+    '<div class="sum-box"><div class="k">② 分步列式</div><div class="v" style="font-size:18px">參考示範</div></div>'+
+    '<div class="sum-box"><div class="k">③ 錯例醫院</div><div class="v" style="font-size:18px">參考示範</div></div>'+
     '<div class="sum-box"><div class="k">④ 出門票</div><div class="v">'+s2.done+'<small>/'+s2.total+'</small></div></div>'+
     '<div class="sum-box"><div class="k">完成度</div><div class="v">'+pct+'<small>%</small></div></div>'+
     '<div class="sum-box"><div class="k">待訂正錯題</div><div class="v">'+nredo+'</div></div>'+
@@ -1437,7 +1378,7 @@ seg("function buildSummary(){", "/* ---------- 老師專用（完整報告／進
     '<div class="sum-box"><div class="k">最高連續答對</div><div class="v">'+ST.best+'</div></div>'+
     '</div>'+
     '<div class="keycard"><div class="kl">🎯 本課算法</div><div class="kv">'+esc(CFG.key)+'</div></div>'+
-    '<div class="sc-mute">⏱ 本課時間預算約 '+CFG.minutes+' 分鐘（診斷 5 ＋ 推演 2 ＋ 分步 5 ＋ 錯例 2.5 ＋ 出門票 4 ＋ 總結 1.5）。今日須作答 16 題。</div>'+
+    '<div class="sc-mute">⏱ 本課時間預算約 '+CFG.minutes+' 分鐘（診斷 2.5 ＋ 推演 2 ＋ 示範瀏覽 2 ＋ 出門票 5–9（依層級） ＋ 總結 1.5）。今日須作答 9 題（診斷 5 ＋ 出門票 4）。</div>'+
     '<div class="sc-mute">⚠️ '+(weak.length?"要留意："+esc(weak.join("；")):"全部掌握良好，可以挑戰下一節！")+'</div>'+
     '<div class="badge-list">'+BADGES.map(b=>
       '<div class="badge'+(ST.badges.indexOf(b.id)>=0?" got":"")+'" title="'+esc(b.d)+'">'+
@@ -1472,10 +1413,9 @@ seg("function buildTeacher(){", "function buildReport(){", r'''function buildTea
     {k:"wrong",   i:"📋", t:"錯題報告",       d:"原題／學生答案／正確答案／錯因歸類"},
     {k:"redo",    i:"🔁", t:"錯題重練",       d:"同類型變式題，答對即完成訂正"},
     {k:"report",  i:"📊", t:"完整個性化報告", d:"強弱項分析＋逐題記錄＋匯出"},
-    {k:"all",     i:"📚", t:"完成所有難度的題", d:"解除分層限制（學生自願）"},
+    {k:"all",     i:"📚", t:"加做其他層級出門票", d:"學生自願，解除分層限制"},
     {k:"homework",i:"📝", t:"課後功課",       d:"進階兩題＋列印"},
     {k:"print",   i:"🖨", t:"列印本課",       d:"列印練習紙／功課"},
-    {k:"reset",   i:"🔄", t:"重做分層診斷",   d:"重設層級（★／★★／★★★）"},
     {k:"sources", i:"📖", t:"教材依據一覽",   d:"逐題對應課本、練習13 與工作紙出處"},
     {k:"clear",   i:"🗑", t:"清空本課記錄",   d:"清除 localStorage 進度"}
   ];
@@ -1486,10 +1426,9 @@ seg("function buildTeacher(){", "function buildReport(){", r'''function buildTea
     b.className="t-btn";
     b.innerHTML='<div class="ti">'+it.i+'</div><div class="tt">'+it.t+'</div><div class="td">'+it.d+'</div>';
     b.onclick=function(){
-      if(it.k==="all"){ ST.all=true; DATA.steps.forEach((_,i)=>ST.tried["steps"+i]=true); grant("all"); save(); toast("📚 已解除限制"); UI.open("steps"); }
+      if(it.k==="all"){ ST.all=true; DATA.steps.forEach((_,i)=>ST.tried["steps"+i]=true); grant("all"); save(); toast("📚 已加開其他層級出門票"); UI.open("steps"); }
       else if(it.k==="report"||it.k==="wrong"||it.k==="redo"||it.k==="homework"||it.k==="sources"){ UI.open(it.k); }
       else if(it.k==="print"){ window.print(); }
-      else if(it.k==="reset"){ ST.diag={done:false,score:0,max:15,right:0,baseOk:0,level:0}; DIAG.forEach(function(_,i){ ST.diag["q"+i]={}; }); try{localStorage.removeItem(LKEY);}catch(e){} save(); toast("🔄 已重設，請重新診斷"); go("diag"); }
       else if(it.k==="clear"){ if(confirm("確定清空本課所有記錄？")){ ST=fresh(); save(); toast("🗑 已清空"); go("intro"); } }
     };
     g.appendChild(b);
@@ -1676,12 +1615,10 @@ seg("function buildReport(){", "/* ---------- 診斷 ---------- */", r'''functio
   const pct=total?Math.round(done/total*100):0;
   const mins=Math.max(1,Math.round((Date.now()-ST.t0)/60000));
   const L=LV[lv()], Pl=planOf();
-  const weakMap={};
-  DATA.steps.forEach((it,i)=>{ const r=ST.steps[i]; if(r&&r.wrong){ weakMap[it.t.slice(0,16)]=(weakMap[it.t.slice(0,16)]||0)+r.wrong; } });
-  const weak=Object.keys(weakMap).sort((a,b)=>weakMap[b]-weakMap[a]);
   const wbs=ST.wrongBook.slice().sort((a,b)=>b.at-a.at);
   const cmap={}; wbs.forEach(w=>{ cmap[w.why]=(cmap[w.why]||0)+1; });
   const ckeys=Object.keys(cmap).sort((a,b)=>cmap[b]-cmap[a]);
+  const weak=ckeys.slice();
   const advice = weak.length
     ? ["針對「" + weak[0] + "」先完成錯題重練，再挑戰同類型題目。",
        "每題依「統一單位 → 寫出比 → 化成 1 : n」三步驟列式，不要直接心算。",
@@ -1723,10 +1660,10 @@ seg("function buildReport(){", "/* ---------- 診斷 ---------- */", r'''functio
     '<div class="sum-box"><div class="k">錯過</div><div class="v">'+wrong+'</div></div>'+
     '<div class="sum-box"><div class="k">用時</div><div class="v">'+mins+'<small>分</small></div></div>'+
     '<div class="sum-box"><div class="k">層級</div><div class="v" style="font-size:19px">'+L.s+'</div></div>'+
-    '<div class="sum-box"><div class="k">診斷得分</div><div class="v">'+(ST.diag.score||0)+'<small>/'+(ST.diag.max||15)+'</small></div></div>'+
+    '<div class="sum-box"><div class="k">診斷得分</div><div class="v">'+(ST.diag.score||0)+'<small>/'+(ST.diag.max||9)+'</small></div></div>'+
     '</div>'+
     '<div class="sc-mute">🎯 本層主題：'+esc(Pl.topic)+'；'+esc(Pl.focus)+'</div>'+
-    '<div class="sc-mute">⏱ 本課時間預算 '+CFG.minutes+' 分鐘；目前用時 '+mins+' 分鐘；今日只派 8 題練習。</div>'+
+    '<div class="sc-mute">⏱ 本課時間預算 '+CFG.minutes+' 分鐘；目前用時 '+mins+' 分鐘；今日只派 4 題出門票。</div>'+
     '<h3 style="font-size:17px;color:var(--secondary);margin:16px 0 8px">二、我的錯題（'+wbs.length+' 題，待訂正 '+redoCount()+' 題）</h3>'+
     (wbs.length
       ? '<table style="width:100%;font-size:13px"><tr><th>題號</th><th>學生答案</th><th>正確答案</th><th>錯因</th><th>狀態</th></tr>'+
@@ -1810,7 +1747,7 @@ function drawCard(){
     cardText(ctx,"PIXEL CARTOGRAPHER  ·  LEARNING REPORT",84,145,15,"#CFE0FF","left",true);
     cardBox(ctx,56,178,788,72,"#FFF3C9","#25243A",true);
     cardText(ctx,"姓名／班別／座號："+(ST.who||"未填寫"),78,214,21,"#25243A");
-    cardText(ctx,"產生日期："+cardDate()+"　｜　課題："+CFG.lesson+"　｜　診斷 "+(ST.diag.score||0)+" / "+(ST.diag.max||15)+" 分",78,238,14,"#6B5000","left",true);
+    cardText(ctx,"產生日期："+cardDate()+"　｜　課題："+CFG.lesson+"　｜　診斷 "+(ST.diag.score||0)+" / "+(ST.diag.max||9)+" 分",78,238,14,"#6B5000","left",true);
 
     const st=[["目前層級",L.s+" "+L.n],["完成度",pct+"%"],["本層答對",done+" / "+total],
               ["累計錯題",wbs.length+" 題"],["待訂正",redoCount()+" 題"],["用時",mins+" 分鐘"]];
@@ -1870,17 +1807,17 @@ function drawCard(){
     y+=adv.length*30+8;
 
     cardBox(ctx,56,y,788,66,"#E4F6EB","#25243A",false);
-    cardText(ctx,"今日須作答 16 題（診斷 8 ＋ 本層練習 8）　｜　時間預算 "+CFG.minutes+" 分鐘",78,y+27,16,"#1B6B42");
+    cardText(ctx,"今日須作答 9 題（診斷 5 ＋ 出門票 4）　｜　時間預算 "+CFG.minutes+" 分鐘",78,y+27,16,"#1B6B42");
     cardText(ctx,"獲得徽章 "+ST.badges.length+" 枚　｜　最高連續答對 "+ST.best+" 題　｜　本層主題："+Pl.topic,
              78,y+51,14,"#1B6B42","left",true);
     y+=82;
 
-    sec(y,"四、本層配對（今日只做 8 題）");
+    sec(y,"四、本層配對（今日只做 4 題）");
     const cs=statPlan("clinic");
     const listNo=function(a){ return a.map(function(i){return i+1;}).join("、"); };
     [
-      ["② 分步列式","第 "+listNo(Pl.steps)+" 題",s1.done+" / "+s1.total+" 已完成"],
-      ["③ 錯例醫院","第 "+listNo(Pl.clinic)+" 題",cs.done+" / "+cs.total+" 已完成"],
+      ["② 分步列式","本層 "+Pl.steps.length+" 題","參考示範、不必作答"],
+      ["③ 錯例醫院","本層 "+Pl.clinic.length+" 題","參考示範、不必作答"],
       ["④ 出門票","第 "+listNo(Pl.exit)+" 題",s2.done+" / "+s2.total+" 已完成"]
     ].forEach(function(r,i){
       const yy=y+40+i*38;
@@ -1920,13 +1857,25 @@ function makeCard(){
 # ══════════════════════════════════════════════════════════════════════
 seg("function buildDiag(){", "/* ---------- 完成後：檢查係咪彈總結 ---------- */", r'''function buildDiag(){
   const box=document.createElement("div");
-  box.innerHTML='<p class="sc-intro">🧭 先完成 <b>8 題分層診斷</b>，讓系統知道你的起點。'+
-    '題目依難度配分：<b>★ 題 1 分、★★ 題 2 分、★★★ 題 3 分，滿分 15 分</b>。'+
-    '這部分不計入練習成績、不提供提示；遇到不會的題目照樣填寫即可，純粹用來配對適合你的題目。</p>';
+  /* 診斷已完成：只顯示結果，不可重做 */
+  if(ST.diag.done){
+    const Ld=LV[ST.diag.level]||LV[1];
+    box.innerHTML='<div class="sc-plan-bar" style="font-size:16px">✅ <b>分層診斷已完成，不可重做。</b><br>'+
+      '診斷得分 <b>'+(ST.diag.score||0)+' / '+(ST.diag.max||9)+' 分</b>　｜　層級 <b>'+Ld.s+' '+Ld.n+
+      '</b>　｜　答對 '+(ST.diag.right||0)+' / '+DIAG.length+' 題<br>'+
+      '<span class="sc-mute">每題只作答一次，答錯不補答；診斷結果已用於配對本層出門票。</span></div>'+
+      '<div class="sc-btns" style="justify-content:center;margin-top:12px">'+
+      '<button class="btn btn-primary btn-sm" data-a="toexp">🚪 前往練習</button></div>';
+    box.querySelector('[data-a="toexp"]').onclick=function(){ UI.close(); go("explore"); };
+    return box;
+  }
+  box.innerHTML='<p class="sc-intro">🧭 先完成 <b>5 題分層診斷</b>，讓系統知道你的起點。'+
+    '題目依難度配分：<b>★ 題 1 分、★★ 題 2 分、★★★ 題 3 分，滿分 9 分</b>。'+
+    '這部分不計入練習成績、不提供提示；<b>每題只作答一次，答錯不補答</b>，遇到不會的題目照樣填寫即可。</p>';
   DIAG.forEach(function(q,i){
     const r=ST.diag["q"+i]||{}; ST.diag["q"+i]=r;
     const row=document.createElement("div");
-    row.className="sc-item"+(r.done?" sc-done":"");
+    row.className="sc-item"+(r.locked?" sc-done":"");
     row.innerHTML='<div class="sc-q"><span class="sc-no">'+(i+1)+'</span>'+
       '<span class="sc-lv">'+esc(q.s)+'　'+stars(q.d||1)+'　'+(q.d||1)+' 分</span>'+
       '<span class="sc-qtext">'+q.t.replace(/（　）/g,'<input class="sc-in" type="text" inputmode="decimal">')+'</span>'+
@@ -1935,12 +1884,27 @@ seg("function buildDiag(){", "/* ---------- 完成後：檢查係咪彈總結 --
       '<div class="sc-btns"><button class="btn btn-primary btn-sm" data-a="ck">✓ 檢查</button></div>'+
       '<div class="sc-fb" id="dfb'+i+'"></div>';
     const inp=row.querySelector(".sc-in"), fb=row.querySelector(".sc-fb");
-    row.querySelector('[data-a="ck"]').onclick=function(){
-      if(r.done) return;
+    const btn=row.querySelector('[data-a="ck"]');
+    function lockRow(msg,cls){
+      inp.disabled=true; btn.disabled=true; btn.style.display="none";
+      fb.className=cls; fb.innerHTML=msg; row.classList.add("sc-done");
+    }
+    if(r.locked||r.done||r.ok){
+      r.locked=true;
+      if(r.ok) lockRow("✅ 本題已作答，答案正確。","sc-fb sc-ok");
+      else lockRow("❌ 本題已作答，答案不正確，不能補答。","sc-fb sc-bad");
+    }
+    btn.onclick=function(){
+      if(r.locked||r.done||r.ok) return;
+      r.locked=true;
       if(norm(inp.value)===norm(q.a[0])){
-        r.done=true; r.ok=true; fb.className="sc-fb sc-ok"; fb.innerHTML="✅ 正確！"+esc(q.exp||"");
-        inp.disabled=true; row.classList.add("sc-done"); sndOk(); addXp(5); save();
-      } else { fb.className="sc-fb sc-bad"; fb.innerHTML="❌ 答案不正確，請重新檢查。"; sndNo(); save(); }
+        r.ok=true; lockRow("✅ 正確！"+esc(q.exp||""),"sc-fb sc-ok");
+        sndOk(); addXp(5);
+      } else {
+        r.ok=false; lockRow("❌ 答案不正確，本題已記錄，不能補答。","sc-fb sc-bad");
+        sndNo();
+      }
+      save();
     };
     box.appendChild(row);
   });
@@ -1955,11 +1919,11 @@ seg("function buildDiag(){", "/* ---------- 完成後：檢查係咪彈總結 --
       const r=ST.diag["q"+i];
       if(r&&r.ok){ score+=(q.d||1); right++; if((q.d||1)===1) baseOk++; }
     });
-    /* 加權得分＋基礎題門檻：基礎題至少對 2 題，才允許進入較高層級 */
-    const baseReady = baseOk>=2;
+    /* 加權得分＋基礎題門檻：基礎題至少對 1 題，才允許進入較高層級 */
+    const baseReady = baseOk>=1;
     let L2 = 1;
-    if(score>=11 && baseReady) L2=3;
-    else if(score>=6 && baseReady) L2=2;
+    if(score>=7 && baseReady) L2=3;
+    else if(score>=4 && baseReady) L2=2;
     else L2=1;
     ST.diag.done=true; ST.diag.score=score; ST.diag.max=max;
     ST.diag.right=right; ST.diag.baseOk=baseOk; ST.diag.level=L2;
@@ -1969,14 +1933,13 @@ seg("function buildDiag(){", "/* ---------- 完成後：檢查係咪彈總結 --
     document.getElementById("diagRes").innerHTML=
       '<div class="sc-plan-bar" style="font-size:16px">🎯 你是 <b>'+Li.s+' '+Li.n+'</b>　'+
       '（診斷得分 <b>'+score+' / '+max+' 分</b>；答對 '+right+' / '+DIAG.length+' 題）<br>'+Li.tip+
-      '<br><span class="sc-mute">8 題依難度配分，得分越接近滿分，代表已具備越多本課前置能力；同一層級內仍可從得分看出差異。</span></div>';
+      '<br><span class="sc-mute">5 題依難度配分，得分越接近滿分，代表已具備越多本課前置能力；同一層級內仍可從得分看出差異。診斷不可重做。</span></div>';
     toast("🎯 分層完成：" + Li.s + " " + Li.n);
     setTimeout(()=>go("explore"), 1400);
   };
   return box;
 }
-
-''', "buildDiag v3")
+''', "buildDiag v4")
 
 # 15. 診斷完成：送徽章
 # ══════════════════════════════════════════════════════════════════════
@@ -1991,7 +1954,7 @@ rep('setTimeout(()=>go("explore"), 1400);',
 # ══════════════════════════════════════════════════════════════════════
 seg("function go(id){", "function navDone(id,v){", r'''function go(id){
   if(id!=="intro" && id!=="diag" && needDiag()){
-    toast("🧭 請先完成 8 題分層診斷，練習才會匹配你的層級");
+    toast("🧭 請先完成 5 題分層診斷，練習才會匹配你的層級");
     UI.open("diag");
     return;
   }
@@ -2025,15 +1988,15 @@ seg("function quickbar(){", "/* ---------- 彈窗 UI ---------- */", r'''functio
 seg("  open:function(stage){", "  close:function(){", r'''  open:function(stage){
     /* 閘門：未完成分層診斷，所有練習與重練都先導向診斷 */
     if(["derive","steps","clinic","exit","redo"].indexOf(stage)>=0 && needDiag()){
-      toast("🧭 請先完成 8 題分層診斷，練習才會匹配你的層級");
+      toast("🧭 請先完成 5 題分層診斷，練習才會匹配你的層級");
       stage="diag";
     }
     this.cur=stage;
     const T={
-      diag:  ["🧭 分層診斷 —— 8 題定程度","依難度配分 1／2／3 分，滿分 15 分；加權得分決定你的層級。"],
+      diag:  ["🧭 分層診斷 —— 5 題定程度","依難度配分 1／2／3 分，滿分 9 分；每題只答一次，答錯不補答。"],
       derive:["① 推演 —— 這類題為什麼要這樣算","先理解、後計算。看完三步，自然記得公式。"],
-      steps: ["② 分步列式 —— 我來試試","依你的層級只做對應的步驟；其餘已幫你填好作為示範。"],
-      clinic:["③ 錯例醫院 —— 看列式找出錯誤","不必計算：先看、再估大小、最後找出錯誤。"],
+      steps: ["② 分步列式 —— 參考示範","本層解題鏈示範，不必作答；今日只須完成 4 題出門票。"],
+      clinic:["③ 錯例醫院 —— 參考示範","本層常見錯例示範，不必作答。"],
       exit:  ["④ 出門票 —— 今日驗收","完成本關就會出現「📋 今日總結」。"],
       redo:  ["🔁 錯題重練 —— 同類型變式題","換數字、不換方法；答對即完成訂正。"],
       wrong: ["📋 錯題報告 —— 逐題對照","原題、學生答案、正確答案、錯因歸類一目了然。"],
@@ -2139,12 +2102,12 @@ seg("function renderIntro(P){", "function renderExplore(P){", r'''function rende
       '<div class="mission-card"><h2>🎯 '+esc(CFG.title)+'</h2><p>'+esc(CFG.story)+'</p></div>'+
       '<div class="story-line">💡 <b>本課算法：</b>'+esc(CFG.key)+'</div>'+
       '<div class="concept-box">📘 <b>教學目標：</b>認識比例尺的意義；由圖上距離與實際距離計算比例尺；認識線段比例尺；認識放大比例尺 10 : 1。<br>'+esc(CFG.standard)+'</div>'+
-      '<div class="concept-box">🔎 <b>'+esc(CFG.encyc)+'</b></div>'+
+      '<div class="concept-box" style="padding-right:150px">🔎 <b>'+esc(CFG.encyc).replace("；","；<br>")+'</b></div>'+
       '<div class="sc-src">📖 教材依據：《澳門新思維數學》第二版修訂版第13課、課本 p.52 附加例題、《澳門新思維數學習作》練習13、自編補充工作紙冊第13課、工作紙 24.png</div>'+
-      '<div class="udl-tip">💡 <b>UDL 提示：</b>本課設有分層——先完成 8 題診斷，系統只會派發適合你程度的 <b>8 題練習</b>（分步 4 題、錯例 2 題、出門票 2 題），不必全部作答。未完成診斷前，練習不會開啟。</div>'+
-      '<div class="concept-box">⏱ <b>時間預算：約 '+CFG.minutes+' 分鐘</b>　（診斷 5 ＋ 推演 2 ＋ 分步 5 ＋ 錯例 2.5 ＋ 出門票 4 ＋ 總結 1.5）。今日須作答 <b>16 題</b>（診斷 8 ＋ 本層練習 8），每題均標示預估秒數與教材原文依據；重點班另含線段比例尺與放大比例尺挑戰題。</div>'+
+      '<div class="udl-tip">💡 <b>UDL 提示：</b>先完成 5 題診斷，系統只派適合你程度的 <b>4 題出門票</b>；分步與錯例為參考示範。未完成診斷前，練習不會開啟。</div>'+
+      '<div class="concept-box">⏱ <b>時間預算：約 '+CFG.minutes+' 分鐘</b>　（診斷 2.5 ＋ 推演 2 ＋ 示範瀏覽 2 ＋ 出門票 5–9（依層級） ＋ 總結 1.5，全程約 13–17 分鐘）。今日須作答 <b>9 題</b>（診斷 5 ＋ 出門票 4），每題均標示預估秒數與教材原文依據；重點班另含線段比例尺與放大比例尺挑戰題。</div>'+
       '<div class="sc-btns" style="justify-content:center;margin-top:14px">'+
-        '<button class="btn btn-primary" onclick="go(\'diag\')">🧭 第一步：做 8 題分層診斷</button>'+
+        '<button class="btn btn-primary" onclick="go(\'diag\')">🧭 第一步：做 5 題分層診斷</button>'+
       '</div>'+
     '</div>';
 }
@@ -2152,21 +2115,21 @@ seg("function renderIntro(P){", "function renderExplore(P){", r'''function rende
 
 seg("function renderPractice(P){", "/* ---------- 推演內嵌（跟住「下一步」解鎖） ---------- */", r'''function renderPractice(P){
   const L=LV[lv()], Pl=planOf();
-  const sIds=activeIds("steps"), cIds=activeIds("clinic"), eIds=activeIds("exit");
+  const sIds=Pl.steps, cIds=Pl.clinic, eIds=activeIds("exit");
   const secOf=function(arr,ids){
     return Math.round(ids.reduce(function(s,i){return s+(arr[i].sec||60);},0)/60*10)/10;
   };
   const match=[
     ["① 推演","3 步","全部層級相同","約 2 分鐘"],
-    ["② 分步列式",sIds.length+" 題","本層第 "+sIds.map(function(i){return i+1;}).join("、")+" 題（"+L.s+"）","約 "+secOf(DATA.steps,sIds)+" 分鐘"],
-    ["③ 錯例醫院",cIds.length+" 題","本層第 "+cIds.map(function(i){return i+1;}).join("、")+" 題","約 "+secOf(DATA.clinic,cIds)+" 分鐘"],
+    ["② 分步列式","示範 "+sIds.length+" 題","本層第 "+sIds.map(function(i){return i+1;}).join("、")+" 題","約 "+secOf(DATA.steps,sIds)+" 分鐘瀏覽"],
+    ["③ 錯例醫院","示範 "+cIds.length+" 題","本層第 "+cIds.map(function(i){return i+1;}).join("、")+" 題","約 "+secOf(DATA.clinic,cIds)+" 分鐘瀏覽"],
     ["④ 出門票",eIds.length+" 題","本層第 "+eIds.map(function(i){return i+1;}).join("、")+" 題","約 "+secOf(DATA.exit,eIds)+" 分鐘"]
   ];
   P.innerHTML=
     '<div class="card">'+
       '<div class="section-title"><span class="emoji">💪</span> 練習 —— 依照四個步驟進行</div>'+
       '<div class="sc-plan-bar">🎯 你是 <b>'+L.s+' '+L.n+'</b>　本層主題：<b>'+esc(Pl.topic)+'</b>。'+L.tip+
-      '　今日只派 <b>8 題</b>（分步 4 ＋ 錯例 2 ＋ 出門票 2），八題都練同一個概念；其他層級的題目不會出現在你的練習中。</div>'+
+      '　今日只派 <b>4 題出門票</b>，四題同屬本層概念；分步與錯例為參考示範。</div>'+
       '<div class="match-grid">'+match.map(function(m){
         return '<div class="match-box"><b>'+m[0]+'</b>題量：<span class="m">'+m[1]+'</span><br>配對：'+m[2]+'<br>時間：'+m[3]+'</div>';
       }).join("")+'</div>'+
@@ -2181,15 +2144,15 @@ seg("function renderPractice(P){", "/* ---------- 推演內嵌（跟住「下一
       '<div class="section-title" style="margin-top:16px"><span class="emoji">🚀</span> 開始練習</div>'+
       '<div class="mainline">'+
         FLOW.map(function(k,i){
-          const done = k==="steps"? statPlan("steps").done>=statPlan("steps").total
+          const done = k==="steps"? false
                      : k==="exit"? statPlan("exit").done>0
                      : k==="derive"? DATA.derive.every((_,j)=>ST.derive[j]&&ST.derive[j].v!==undefined)
-                     : k==="clinic"? statPlan("clinic").done>=statPlan("clinic").total
+                     : k==="clinic"? false
                      : false;
           const D={
             derive:["① 推演","看做法：這類題為什麼要這樣算"],
-            steps: ["② 分步列式","我來試試：一步一步填寫算式"],
-            clinic:["③ 錯例醫院","看列式：找出別人的錯誤"],
+            steps: ["② 分步列式","參考示範：題目、答案與解法"],
+            clinic:["③ 錯例醫院","參考示範：看看別人錯在哪裡"],
             exit:  ["④ 出門票","驗收：今日學到多少"]
           }[k];
           return '<button class="ml-btn'+(done?" done":"")+'" data-go="'+k+'">'+
@@ -2402,7 +2365,7 @@ else:
 # 角色命名與一次作答制用語：避免沿用《解比例》精靈名或「再試一次」
 ROLE_BAD = ["比比", "再試一次", "再接再厲", "準備好了嗎"]
 role_hits = [k for k in ROLE_BAD if k in html]
-if role_hits or "尺尺：請先完成 8 題分層診斷。" not in html:
+if role_hits or "尺尺：請先完成 5 題分層診斷。" not in html:
     raise SystemExit("❌ 角色／作答用語不一致：%s" % (role_hits or ["缺少尺尺初始指引"]))
 print("✅ 角色與作答用語：統一為「尺尺」；答錯導向錯題重練，無重試原題提示")
 
@@ -2429,21 +2392,46 @@ if missing:
     raise SystemExit("❌ 第13課核心內容缺漏：%s" % missing)
 print("✅ 第13課核心內容：意義／求比例尺／線段比例尺／放大比例尺／基力／逐題依據 齊備")
 
-# 逐題秒數與時間預算
-print("✅ 題庫：診斷 8 題（加權滿分 15）／分步 12 題／錯例 6 題／出門票 6 題；每層只派 8 題；時間預算 20 分鐘")
+# 逐題秒數與時間預算：真正核算各層出門票秒數，並核對教材上印出的區間
+_exit_blk = re.search(r"exit:\s*\[(.*?)\n  \]", html, re.S)
+_exit_secs = [int(x) for x in re.findall(r"sec:\s*(\d+)", _exit_blk.group(1))] if _exit_blk else []
+_plan_exits = re.findall(r"exit:\s*\[([\d,\s]+)\]", html)
+if len(_exit_secs) != 12 or len(_plan_exits) != 3:
+    raise SystemExit("❌ 時間預算核算失敗：出門票 %d 題／分層 %d 組" % (len(_exit_secs), len(_plan_exits)))
+_layer_min = []
+for g in _plan_exits:
+    ids = [int(x.strip()) for x in g.split(",") if x.strip()]
+    if len(ids) != 4:
+        raise SystemExit("❌ 每層出門票必須恰好 4 題，實得 %d 題" % len(ids))
+    _layer_min.append(sum(_exit_secs[i] for i in ids) / 60)
+_lo, _hi = round(min(_layer_min)), round(max(_layer_min))
+_tlo, _thi = round(2.5 + 2 + 2 + min(_layer_min) + 1.5), round(2.5 + 2 + 2 + max(_layer_min) + 1.5)
+if ("出門票 %d–%d（依層級）" % (_lo, _hi)) not in html:
+    raise SystemExit("❌ 教材印出的出門票時間與逐題秒數不符（應為 %d–%d 分鐘）" % (_lo, _hi))
+if ("全程約 %d–%d 分鐘" % (_tlo, _thi)) not in html:
+    raise SystemExit("❌ 教材印出的全程時間與逐題秒數不符（應為 %d–%d 分鐘）" % (_tlo, _thi))
+if _thi > 20:
+    raise SystemExit("❌ 超出單科作業 20 分鐘上限（最深層 %d 分鐘）" % _thi)
+print("✅ 題庫：診斷 5 題（加權滿分 9）／分步 12 題／錯例 6 題／出門票 12 題；每層只派 4 題出門票")
+print("✅ 時間預算核算：各層出門票 %.1f–%.1f 分鐘，全程 %d–%d 分鐘（未超 20 分鐘上限）"
+      % (min(_layer_min), max(_layer_min), _tlo, _thi))
 
 # 四大改造的結構檢查（防止日後改題庫時被覆蓋）
 MECH = [
-    ("診斷 8 題加權分層（滿分 15、基礎題門檻）",
+    ("診斷 5 題加權分層（滿分 9、基礎題門檻）",
      "const DIAG = [" in html and "ST.diag.max=max" in html and
-     "score>=11 && baseReady" in html and "score>=6 && baseReady" in html and
-     "baseOk>=2" in html),
-    ("每層 8 題練習（分步 4／錯例 2／出門票 2）",
-     "steps:[0,1,2,3]" in html and "steps:[4,5,6,7]" in html and
-     "steps:[8,9,10,11]" in html and "exit:[4,5]" in html and
-     "clinic:[4,5]" in html and "return picks.slice();" in html),
+     "score>=7 && baseReady" in html and "score>=4 && baseReady" in html and
+     "baseOk>=1" in html and "max:9" in html),
+    ("診斷不可重做（一次作答即鎖、答錯不補答）",
+     "分層診斷已完成，不可重做" in html and "不能補答" in html and
+     "r.locked=true" in html and "if(ST.diag.done){" in html and
+     "重做分層診斷" not in html),
+    ("每層只派 4 題出門票（分步／錯例為參考示範）",
+     "exit:[0,1,2,3]" in html and "exit:[4,5,6,7]" in html and
+     "exit:[8,9,10,11]" in html and 'if(stage!=="exit") return [];' in html and
+     "參考示範" in html and "return planOf().exit.slice();" in html),
     ("角色與一次作答制用語一致（尺尺／錯題重練）",
-     "尺尺：請先完成 8 題分層診斷。" in html and
+     "尺尺：請先完成 5 題分層診斷。" in html and
      '尺尺："+s' in html and
      "比比" not in html and "再試一次" not in html and
      "已記入錯題本，請前往錯題重練。" in html),
