@@ -91,6 +91,7 @@
 | `source/smoke.js` | jsdom 自動化測試（v4 煙測 251/251），驗證加權分層、每層 4 題出門票配對、鎖定、錯題本、教材依據、角色用語、時間預算與報告圖片 |
 | `source/shot.js` | 本機 Chrome 實機截圖、六種像素圖解巡檢與報告卡 PNG 驗證 |
 | `source/pages-check.js` | 本機 HTTP 模擬 GitHub Pages，檢查全班上線環境（v4 HTTP 模擬 23/23） |
+| `source/verify-online.js` | 上線後用真瀏覽器驗證 HTTPS／子目錄／兩份教材並存（v4 線上實機 20/20） |
 
 ---
 
